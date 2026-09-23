@@ -1,0 +1,36 @@
+export type RegistrationStatus = "pending" | "approved" | "rejected";
+
+export type Registration = {
+  id: string;
+  status: RegistrationStatus;
+  athlete_name: string;
+  athlete_nickname: string | null;
+  birth_date: string;
+  athlete_document: string | null;
+  naturality: string | null;
+  school_name: string | null;
+  school_grade: string | null;
+  school_shift: string | null;
+  address: Record<string, string>;
+  family: Record<string, string>;
+  health: Record<string, unknown>;
+  allergies: string[];
+  guardian_name: string;
+  guardian_relationship: string;
+  guardian_phone: string;
+  guardian_email: string;
+  image_consent: boolean;
+  responsibility_accepted: boolean;
+  terms_version: string;
+  accepted_at: string;
+  enrollment_number: string | null;
+  category: string | null;
+  class_name: string | null;
+  training_days: string | null;
+  training_time: string | null;
+  start_date: string | null;
+  rejection_reason: string | null;
+  decided_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
