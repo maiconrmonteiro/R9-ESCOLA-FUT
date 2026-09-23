@@ -74,6 +74,9 @@ create policy "public submits pending registrations" on public.registrations for
 create policy "admins read registrations" on public.registrations for select to authenticated using (
   exists (select 1 from public.admin_profiles where id = auth.uid())
 );
+create policy "admins create registrations" on public.registrations for insert to authenticated with check (
+  status = 'pending' and exists (select 1 from public.admin_profiles where id = auth.uid())
+);
 create policy "admins update registrations" on public.registrations for update to authenticated using (
   exists (select 1 from public.admin_profiles where id = auth.uid())
 ) with check (exists (select 1 from public.admin_profiles where id = auth.uid()));
@@ -86,6 +89,6 @@ create policy "admins create events" on public.registration_events for insert to
 
 revoke all on public.registrations from anon;
 grant insert on public.registrations to anon;
-grant select, update on public.registrations to authenticated;
+grant select, insert, update on public.registrations to authenticated;
 grant select on public.admin_profiles to authenticated;
 grant select, insert on public.registration_events to authenticated;

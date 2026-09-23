@@ -37,7 +37,7 @@ function Field({ label, error, full, children }: { label: string; error?: string
   return <div className={`field${full ? " full" : ""}`}><label>{label}</label>{children}{error && <span className="error">{error}</span>}</div>;
 }
 
-export function RegistrationForm() {
+export function RegistrationForm({ adminMode = false }: { adminMode?: boolean }) {
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -58,7 +58,7 @@ export function RegistrationForm() {
     setDone(true); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  if (done) return <div className="card success"><div className="success-icon"><Check size={34}/></div><h2>Inscrição recebida</h2><p className="form-help">Os dados foram enviados com segurança e aguardam a análise da equipe RS9. A escola entrará em contato pelos dados informados.</p><div className="notice">O envio não garante vaga nem confirma matrícula. Não há consulta pública para proteger os dados do atleta.</div></div>;
+  if (done) return <div className="card success"><div className="success-icon"><Check size={34}/></div><h2>Inscrição cadastrada</h2><p className="form-help">{adminMode ? "O cadastro foi salvo e já está disponível na fila de análise do painel." : "Os dados foram enviados com segurança e aguardam a análise da equipe RS9. A escola entrará em contato pelos dados informados."}</p><div className="notice">A inscrição foi registrada como <strong>pendente</strong> e ainda precisa ser analisada.</div>{adminMode && <a className="btn btn-primary" style={{marginTop:20}} href="/admin/inscricoes">Voltar às inscrições</a>}</div>;
 
   return (
     <form className="card form-card" onSubmit={handleSubmit(submit)} noValidate>
