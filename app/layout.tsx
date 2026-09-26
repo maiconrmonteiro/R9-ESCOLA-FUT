@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#042d26",
+  themeColor: "#052e27",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -23,5 +24,23 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><head><link rel="apple-touch-icon" href="/logo-rs9.png" /></head><body>{children}</body></html>;
+  return (
+    <html lang="pt-BR">
+      <head>
+        <link rel="apple-touch-icon" href="/logo-rs9.png" />
+      </head>
+      <body>
+        {children}
+        <Script id="sw-register" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js');
+              });
+            }
+          `}
+        </Script>
+      </body>
+    </html>
+  );
 }
