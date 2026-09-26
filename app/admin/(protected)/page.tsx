@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, ClipboardList } from "lucide-react";
+import { ArrowRight, CheckCircle2, ClipboardList, Clock3, TrendingUp, UsersRound, XCircle } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Registration, RegistrationStatus } from "@/lib/types";
 import { formatDate, initials } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { InstallButton } from "@/components/install-button";
+import styles from "./dashboard.module.css";
 
 export default async function DashboardPage() {
   let rows: Registration[] = [];
@@ -24,5 +25,26 @@ export default async function DashboardPage() {
     ]);
     Object.assign(counts, { total: total ?? 0, pending: pending ?? 0, approved: approved ?? 0, rejected: rejected ?? 0 });
   }
-  return <><header className="page-head"><div><p className="eyebrow">Central administrativa</p><h1>Visão geral</h1><p>Acompanhe inscrições e decisões da equipe.</p></div><div style={{display:"flex",gap:10,flexWrap:"wrap"}}><InstallButton/><Link className="btn btn-primary" href="/admin/inscricoes">Ver todas <ArrowRight size={17}/></Link></div></header><section className="stats"><div className="card stat"><div className="stat-label">Total de inscrições</div><div className="stat-value">{counts.total}</div></div><div className="card stat pending"><div className="stat-label">Aguardando análise</div><div className="stat-value">{counts.pending}</div></div><div className="card stat"><div className="stat-label">Atletas aprovados</div><div className="stat-value">{counts.approved}</div></div><div className="card stat"><div className="stat-label">Recusadas</div><div className="stat-value">{counts.rejected}</div></div></section><section className="card section-card"><div className="section-head"><h2>Inscrições recentes</h2><span style={{fontSize:13,color:"var(--muted)"}}>Dados em tempo real</span></div>{rows.length ? <div className="table-wrap"><table><thead><tr><th>Atleta</th><th>Responsável</th><th>Recebida em</th><th>Status</th><th></th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><div className="athlete-cell"><span className="avatar">{initials(row.athlete_name)}</span>{row.athlete_name}</div></td><td>{row.guardian_name}</td><td>{formatDate(row.created_at)}</td><td><StatusBadge status={row.status}/></td><td><Link href={`/admin/inscricoes/${row.id}`} aria-label={`Abrir ficha de ${row.athlete_name}`}><ArrowRight size={18}/></Link></td></tr>)}</tbody></table></div> : <div className="empty"><ClipboardList size={34} style={{margin:"0 auto 12px"}}/><strong>Nenhuma inscrição recebida</strong><p>Os novos cadastros aparecerão aqui assim que forem enviados.</p></div>}</section></>;
+  const stats = [
+    { label: "Total de inscrições", value: counts.total, icon: UsersRound, tone: "primary" },
+    { label: "Aguardando análise", value: counts.pending, icon: Clock3, tone: "warning" },
+    { label: "Atletas aprovados", value: counts.approved, icon: CheckCircle2, tone: "success" },
+    { label: "Não aprovados", value: counts.rejected, icon: XCircle, tone: "neutral" },
+  ];
+  return <>
+    <header className={styles.header}>
+      <div><p className={styles.eyebrow}>Painel administrativo</p><h1>Visão geral</h1><p className={styles.subtitle}>Uma visão rápida das inscrições da escola.</p></div>
+      <div className={styles.actions}><InstallButton/><Link className="btn btn-primary" href="/admin/inscricoes">Ver inscrições <ArrowRight size={17}/></Link></div>
+    </header>
+    <section className={styles.stats} aria-label="Resumo das inscrições">
+      {stats.map(({ label, value, icon: Icon, tone }) => <article className={`${styles.stat} ${styles[tone]}`} key={label}>
+        <div className={styles.statTop}><span className={styles.statIcon}><Icon size={19}/></span><span className={styles.statLabel}>{label}</span></div>
+        <div className={styles.statBottom}><strong className={styles.statValue}>{value}</strong>{tone === "primary" && <span className={styles.statLive}><TrendingUp size={13}/> Atualizado agora</span>}</div>
+      </article>)}
+    </section>
+    <section className={styles.recent}>
+      <div className={styles.recentHead}><div><p className={styles.sectionKicker}>Últimas atividades</p><h2>Inscrições recentes</h2></div><span className={styles.liveLabel}><i/> Tempo real</span></div>
+      {rows.length ? <div className="table-wrap"><table><thead><tr><th>Atleta</th><th>Responsável</th><th>Recebida em</th><th>Status</th><th></th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><div className="athlete-cell"><span className="avatar">{initials(row.athlete_name)}</span>{row.athlete_name}</div></td><td>{row.guardian_name}</td><td>{formatDate(row.created_at)}</td><td><StatusBadge status={row.status}/></td><td><Link className="row-action" href={`/admin/inscricoes/${row.id}`} aria-label={`Abrir ficha de ${row.athlete_name}`}><ArrowRight size={18}/></Link></td></tr>)}</tbody></table></div> : <div className={styles.empty}><div className={styles.emptyIcon}><ClipboardList size={28}/></div><strong>Nenhuma inscrição por aqui ainda</strong><p>Assim que uma nova ficha for enviada, ela aparecerá neste painel.</p><Link className={styles.emptyLink} href="/admin/inscricoes/nova">Cadastrar manualmente <ArrowRight size={15}/></Link></div>}
+    </section>
+  </>;
 }
