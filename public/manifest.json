@@ -1,0 +1,17 @@
+{
+  "name": "RS9 Escola",
+  "short_name": "RS9",
+  "description": "Sistema de Gestão - Escola de Futebol RS9",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#042d26",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo-rs9.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

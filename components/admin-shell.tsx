@@ -11,7 +11,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <nav className="nav-links" aria-label="Navegação administrativa">
           <Link className="nav-link active" href="/admin"><LayoutDashboard size={18}/><span>Visão geral</span></Link>
           <Link className="nav-link" href="/admin/inscricoes"><UsersRound size={18}/><span>Inscrições</span></Link>
-          <Link className="nav-link" href="/admin/inscricoes/nova"><PlusCircle size={18}/><span>Nova inscrição</span></Link>
           <form action={logout}>
             <button className="nav-link" style={{border:0,width:"100%",background:"transparent"}}><LogOut size={18}/><span>Sair</span></button>
           </form>
