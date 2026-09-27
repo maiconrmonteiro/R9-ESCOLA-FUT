@@ -36,7 +36,7 @@ Importe o repositório GitHub na Vercel e cadastre as mesmas variáveis de `.env
 ## Pendências antes da produção
 
 - Adicionar a logo oficial como `public/logo-rs9.png` e substituir o marcador textual no componente `Brand`, preservando proporção e arte original.
-- Revisar e inserir a transcrição integral do termo de responsabilidade. A fotografia recebida não permite conferência jurídica fiel; a versão atual está identificada como `PENDENTE_REVISAO_2026-01`.
+- Submeter a versão `RS9-2026-01` do termo de responsabilidade e a obrigatoriedade da autorização de imagem à revisão jurídica antes da publicação.
 - Definir contato oficial da escola e contato de privacidade nas variáveis correspondentes.
 - Para volume público maior, complementar o honeypot com CAPTCHA/Turnstile e limitação de frequência na borda.
 - Revisar juridicamente bases legais, prazo de retenção e processo de atendimento aos titulares conforme a LGPD.

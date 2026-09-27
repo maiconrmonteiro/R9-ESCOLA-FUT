@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, Check, LoaderCircle } from "lucide-react";
@@ -8,20 +8,35 @@ import { registrationSchema, type RegistrationInput } from "@/lib/validation/reg
 
 const steps = ["Atleta", "Família", "Saúde", "Termo", "Revisão"];
 const allergyOptions = ["Leite e lactose", "Glúten", "Picada de insetos", "Pelos de animais", "Poeira", "Respiratória", "Hipertensão", "Diabetes"];
+const responsibilityTerms = [
+  "Eximir a Escola de Futebol RS9 e a A.E.R.C. PRADENSE de eventuais acidentes — tais como lesões, machucados, torções etc. — decorrentes da prática esportiva. Se ocorrer, é dever da Escola prestar os primeiros socorros somente;",
+  "Declaro que o atleta (aluno) inscrito está apto ao esporte;",
+  "Declaro que o atleta (aluno) está estudando;",
+  "Informar ao monitor instrutor da Escola eventuais problemas de saúde que o atleta venha a sofrer;",
+  "A frequência do aluno (atleta) nos treinos será controlada. É cargo do responsável pelo aluno zelar pela frequência do atleta nos treinamentos;",
+  "Os dias e horários dos treinamentos (turmas) serão divulgados previamente;",
+  "O aluno (atleta) deverá comparecer com uniforme de treinamento. Caso ainda não tenha ganho, é obrigatório o uso de camiseta, bermuda de jogo, meião/meia e calçados apropriados (chuteiras ou tênis);",
+  "Os problemas de ordem disciplinar serão resolvidos pela Escola de Futebol RS9 e posteriormente comunicados aos responsáveis pelo aluno (atleta);",
+  "Em caso de chuva 30 minutos antes do início do treino, fica acertado que o mesmo estará cancelado;",
+  "Os materiais — bem como uniformes para jogos, coletes, bolas, cones etc. — são de uso exclusivo da Escola de Futebol RS9 e serão disponibilizados aos alunos (atletas) inscritos durante os treinamentos e jogos;",
+  "Os casos omissos serão resolvidos pela Escola de Futebol RS9, dando conhecimento aos responsáveis pelo(s) aluno(s);",
+  "Autorizo o uso da imagem do atleta acima qualificado em todo e qualquer material entre fotos e documentos, para ser utilizada em campanhas promocionais e institucionais da Escola de Futebol RS9 e da A.E.R.C. PRADENSE, sejam essas destinadas à divulgação ao público em geral;",
+  "Declaro que o atleta (aluno) inscrito não participa de nenhuma escolinha de futebol, seja ela particular ou gratuita.",
+];
 
 const defaults: RegistrationInput = {
   athleteName: "", athleteNickname: "", birthDate: "", athleteDocument: "", naturality: "", schoolName: "", schoolGrade: "", schoolShift: "nao_informado",
   zipCode: "", street: "", number: "", complement: "", neighborhood: "", city: "", state: "",
-  motherName: "", motherPhone: "", fatherName: "", fatherPhone: "", guardianName: "", guardianRelationship: "", guardianPhone: "", guardianEmail: "",
+  motherName: "", motherPhone: "", fatherName: "", fatherPhone: "", guardianName: "", guardianCpf: "", guardianIdentity: "", guardianRelationship: "", guardianPhone: "", guardianEmail: "",
   weight: "", height: "", bloodType: "", susCns: "", hasHealthCondition: false, healthConditionDetails: "", continuousMedication: "", vaccinationUpToDate: "nao_sei", specialNeeds: "", allergies: [], otherAllergies: "",
-  termsAccepted: false as true, imageConsent: false, signerName: "", honeypot: "",
+  termsAccepted: false as true, imageConsent: false as true, signerName: "", honeypot: "",
 };
 
 const stepFields: Array<Array<keyof RegistrationInput>> = [
   ["athleteName", "birthDate", "schoolShift", "street", "neighborhood", "city", "state"],
-  ["guardianName", "guardianRelationship", "guardianPhone", "guardianEmail"],
+  ["guardianName", "guardianCpf", "guardianIdentity", "guardianRelationship", "guardianPhone", "guardianEmail"],
   ["vaccinationUpToDate"],
-  ["termsAccepted", "signerName"],
+  ["termsAccepted", "imageConsent", "signerName"],
   [],
 ];
 
@@ -41,9 +56,37 @@ export function RegistrationForm({ adminMode = false }: { adminMode?: boolean })
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [serverError, setServerError] = useState("");
+  const lastCep = useRef("");
   const { register, handleSubmit, watch, setValue, trigger, formState: { errors, isSubmitting } } = useForm<RegistrationInput>({ resolver: zodResolver(registrationSchema), defaultValues: defaults, mode: "onTouched" });
   const values = watch();
   const age = useMemo(() => ageFrom(values.birthDate), [values.birthDate]);
+
+  useEffect(() => {
+    const cep = values.zipCode?.replace(/\D/g, "") ?? "";
+    if (cep.length !== 8) {
+      lastCep.current = "";
+      return;
+    }
+    if (lastCep.current === cep) return;
+    lastCep.current = cep;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/cep/${cep}`, { signal: controller.signal });
+        const address = await response.json();
+        if (!response.ok) throw new Error(address.message ?? "CEP não encontrado.");
+        setValue("zipCode", address.cep, { shouldValidate: true });
+        setValue("street", address.street, { shouldValidate: true });
+        setValue("neighborhood", address.neighborhood, { shouldValidate: true });
+        setValue("city", address.city, { shouldValidate: true });
+        setValue("state", address.state, { shouldValidate: true });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        lastCep.current = "";
+      }
+    }, 350);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [setValue, values.zipCode]);
 
   async function next() {
     const valid = await trigger(stepFields[step]);
@@ -77,7 +120,7 @@ export function RegistrationForm({ adminMode = false }: { adminMode?: boolean })
             <Field label="Escola"><input {...register("schoolName")}/></Field>
             <Field label="Série"><input {...register("schoolGrade")}/></Field>
             <Field label="Turno escolar"><select {...register("schoolShift")}><option value="nao_informado">Não informado</option><option value="manha">Manhã</option><option value="tarde">Tarde</option><option value="noite">Noite</option><option value="integral">Integral</option></select></Field>
-            <Field label="CEP"><input inputMode="numeric" autoComplete="postal-code" placeholder="00000-000" {...register("zipCode")}/></Field>
+            <Field label="CEP"><input inputMode="numeric" autoComplete="postal-code" placeholder="00000-000" maxLength={9} {...register("zipCode")}/></Field>
             <Field label="Rua / avenida *" error={errors.street?.message} full><input autoComplete="street-address" {...register("street")}/></Field>
             <Field label="Número"><input {...register("number")}/></Field><Field label="Complemento"><input {...register("complement")}/></Field>
             <Field label="Bairro *" error={errors.neighborhood?.message}><input {...register("neighborhood")}/></Field><Field label="Cidade *" error={errors.city?.message}><input {...register("city")}/></Field>
@@ -90,6 +133,8 @@ export function RegistrationForm({ adminMode = false }: { adminMode?: boolean })
             <Field label="Nome da mãe"><input {...register("motherName")}/></Field><Field label="Telefone da mãe"><input type="tel" inputMode="tel" {...register("motherPhone")}/></Field>
             <Field label="Nome do pai"><input {...register("fatherName")}/></Field><Field label="Telefone do pai"><input type="tel" inputMode="tel" {...register("fatherPhone")}/></Field>
             <Field label="Responsável legal *" error={errors.guardianName?.message} full><input autoComplete="name" {...register("guardianName")}/></Field>
+            <Field label="CPF do responsável *" error={errors.guardianCpf?.message}><input inputMode="numeric" autoComplete="off" placeholder="000.000.000-00" {...register("guardianCpf")}/></Field>
+            <Field label="Identidade do responsável *" error={errors.guardianIdentity?.message}><input autoComplete="off" {...register("guardianIdentity")}/></Field>
             <Field label="Vínculo com o atleta *" error={errors.guardianRelationship?.message}><select {...register("guardianRelationship")}><option value="">Selecione</option><option>Mãe</option><option>Pai</option><option>Avó/avô</option><option>Tutor(a) legal</option><option>Outro responsável legal</option></select></Field>
             <Field label="Telefone principal *" error={errors.guardianPhone?.message}><input type="tel" inputMode="tel" autoComplete="tel" placeholder="(00) 00000-0000" {...register("guardianPhone")}/></Field>
             <Field label="E-mail *" error={errors.guardianEmail?.message} full><input type="email" inputMode="email" autoComplete="email" {...register("guardianEmail")}/></Field>
@@ -110,10 +155,16 @@ export function RegistrationForm({ adminMode = false }: { adminMode?: boolean })
           </div>
         </>}
         {step === 3 && <>
-          <h2 className="form-title">Termos e privacidade</h2><p className="form-help">Leia as condições e registre suas escolhas antes do envio.</p>
-          <div className="notice"><strong>Texto em revisão administrativa</strong><br/>A cópia fotografada do termo atual não possui nitidez suficiente para publicação fiel. Antes do uso em produção, a escola deve inserir e aprovar a transcrição integral da versão vigente. Nenhuma cláusula foi presumida.</div>
-          <div className="field" style={{marginTop: 20}}><label className="choice"><input type="checkbox" {...register("termsAccepted")}/> Li e confirmo o termo de responsabilidade apresentado acima. *</label>{errors.termsAccepted && <span className="error">{errors.termsAccepted.message}</span>}</div>
-          <div className="field" style={{marginTop: 12}}><span className="label">Autorização de uso de imagem</span><label className="choice"><input type="checkbox" {...register("imageConsent")}/> Autorizo, de forma específica, o uso de imagem do atleta conforme o texto que será revisado pela escola.</label><small style={{color: "var(--muted)"}}>Esta escolha é opcional e não interfere no envio da inscrição.</small></div>
+          <h2 className="form-title">Termos e privacidade</h2><p className="form-help">Leia todas as condições e registre sua concordância antes do envio.</p>
+          <section className="terms-document" aria-labelledby="terms-heading">
+            <div className="terms-heading"><span>Documento oficial</span><h3 id="terms-heading">Termo de Responsabilidade</h3><small>Versão RS9-2026-01</small></div>
+            <p>Eu, responsável legal pelo menor (atleta), venho solicitar sua inscrição na Escola de Futebol RS9, assumindo, nesta oportunidade, as cláusulas abaixo:</p>
+            <ol>{responsibilityTerms.map((term, index) => <li key={index}>{term}</li>)}</ol>
+            <p>Nestes termos, assino a presente inscrição e autorizo o menor a frequentar a Escola de Futebol RS9, informando, ainda, que o mesmo encontra-se matriculado em escola de ensino regular, em plenas condições de saúde para prática de esporte, consciente e me responsabilizando por todo e qualquer acidente que o menor venha sofrer praticando esporte nos locais de treino.</p>
+            <p className="terms-note"><strong>Observação:</strong> a inscrição só terá validade mediante o preenchimento desta ficha e a confirmação do responsável.</p>
+          </section>
+          <div className="field consent-field"><label className="choice"><input type="checkbox" {...register("termsAccepted")}/> <span>Li, compreendi e concordo com o Termo de Responsabilidade apresentado acima. *</span></label>{errors.termsAccepted && <span className="error">{errors.termsAccepted.message}</span>}</div>
+          <div className="field consent-field"><span className="label">Autorização de uso de imagem</span><label className="choice"><input type="checkbox" {...register("imageConsent")}/> <span>Autorizo o uso da imagem do atleta nas condições descritas na cláusula 12. *</span></label>{errors.imageConsent && <span className="error">{errors.imageConsent.message}</span>}</div>
           <div className="field-grid" style={{marginTop: 20}}><Field label="Nome completo de quem confirma *" error={errors.signerName?.message} full><input {...register("signerName")}/></Field></div>
           <input tabIndex={-1} autoComplete="off" aria-hidden="true" style={{position:"absolute",left:"-9999px"}} {...register("honeypot")}/>
         </>}
@@ -122,7 +173,8 @@ export function RegistrationForm({ adminMode = false }: { adminMode?: boolean })
           <div className="data-grid">
             <div className="data-item"><span>Atleta</span><strong>{values.athleteName}</strong></div><div className="data-item"><span>Nascimento</span><strong>{values.birthDate?.split("-").reverse().join("/")}</strong></div>
             <div className="data-item"><span>Responsável</span><strong>{values.guardianName} · {values.guardianRelationship}</strong></div><div className="data-item"><span>Contato</span><strong>{values.guardianPhone}<br/>{values.guardianEmail}</strong></div>
-            <div className="data-item"><span>Endereço</span><strong>{values.street}, {values.number || "s/n"} · {values.city}/{values.state}</strong></div><div className="data-item"><span>Uso de imagem</span><strong>{values.imageConsent ? "Autorizado" : "Não autorizado"}</strong></div>
+            <div className="data-item"><span>Endereço</span><strong>{values.street}, {values.number || "s/n"} · {values.city}/{values.state}</strong></div><div className="data-item"><span>Termo de responsabilidade</span><strong>{values.termsAccepted ? "Aceito" : "Pendente"}</strong></div>
+            <div className="data-item"><span>Uso de imagem</span><strong>{values.imageConsent ? "Autorizado" : "Pendente"}</strong></div><div className="data-item"><span>Confirmado por</span><strong>{values.signerName}</strong></div>
           </div>
           <div className="notice" style={{marginTop: 24}}>Ao enviar, a inscrição ficará com status <strong>pendente</strong> até a análise da RS9.</div>
           {serverError && <p className="error" role="alert" style={{marginTop: 16}}>{serverError}</p>}

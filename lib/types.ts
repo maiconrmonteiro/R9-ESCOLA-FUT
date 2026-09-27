@@ -21,6 +21,7 @@ export type Registration = {
   guardian_email: string;
   image_consent: boolean;
   responsibility_accepted: boolean;
+  signer_name: string;
   terms_version: string;
   accepted_at: string;
   enrollment_number: string | null;

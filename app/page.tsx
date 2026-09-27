@@ -14,7 +14,7 @@ export default function HomePage() {
       <section className="construction-content">
         <div className="construction-copy">
           <p className="construction-kicker"><span /> Novo site em preparação</p>
-          <h1>Formando atletas.<br/><em>Construindo futuros.</em></h1>
+          <h1>Formando atletas.<br/><em><span>Transformando</span> histórias.</em></h1>
           <p className="construction-text">Estamos preparando uma nova experiência digital para atletas, famílias e toda a comunidade RS9.</p>
           <div className="construction-actions">
             <Link className="construction-button construction-button-primary" href="/inscricao"><UserPlus size={19}/> Fazer inscrição <ArrowRight size={18}/></Link>

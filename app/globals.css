@@ -44,8 +44,9 @@ a { color: inherit; text-decoration: none; }
 .construction-copy { min-width: 0; max-width: 720px; overflow-wrap: anywhere; }
 .construction-kicker { display: flex; align-items: center; gap: 10px; margin: 0 0 23px; color: #d5e2de; font-size: 13px; font-style: normal; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
 .construction-kicker span { width: 34px; height: 3px; background: var(--gold-500); border-radius: 99px; }
-.construction-copy h1 { margin: 0; color: white; font-size: clamp(48px, 7.2vw, 94px); line-height: .97; letter-spacing: -.065em; }
-.construction-copy h1 em { color: var(--gold-500); font-style: normal; }
+.construction-copy h1 { margin: 0; color: white; font-size: clamp(46px, 5.8vw, 76px); line-height: .97; letter-spacing: -.065em; overflow-wrap: normal; word-break: normal; }
+.construction-copy h1 em { display: block; color: var(--gold-500); font-style: normal; overflow-wrap: normal; word-break: normal; }
+.construction-copy h1 em span { white-space: nowrap; }
 .construction-text { max-width: 610px; margin: 30px 0 0; color: #bdd0ca; font-size: clamp(17px, 2vw, 20px); font-style: normal; line-height: 1.65; }
 .construction-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin-top: 34px; }
 .construction-button { display: inline-flex; align-items: center; gap: 10px; min-height: 54px; padding: 13px 20px; color: #062e26; background: var(--gold-500); border-radius: 11px; font-size: 15px; font-weight: 850; box-shadow: 0 15px 36px rgba(0,0,0,.2); transition: transform .18s, background .18s; }
@@ -75,9 +76,9 @@ h1 { margin: 8px 0 10px; color: var(--forest-950); font-family: var(--display); 
 .form-body { padding: clamp(24px, 4vw, 42px); }
 .form-title { margin: 0 0 7px; font-family: var(--display); font-size: 28px; font-weight: 850; letter-spacing: -.035em; }
 .form-help { margin: 0 0 26px; color: var(--muted); line-height: 1.5; }
-.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 18px; }
 .field-grid .full { grid-column: 1 / -1; }
-.field { display: grid; gap: 7px; }
+.field { display: grid; align-content: start; gap: 7px; }
 .field label, .label { font-size: 14px; font-weight: 750; color: #263a34; }
 .field input, .field select, .field textarea, .search-input { width: 100%; min-height: 50px; padding: 12px 14px; color: var(--ink); background: #fcfdfd; border: 1px solid #cbd8d4; border-radius: var(--radius-sm); outline: none; transition: border .15s, box-shadow .15s, background .15s; }
 .field textarea { min-height: 88px; resize: vertical; }
@@ -100,6 +101,18 @@ h1 { margin: 8px 0 10px; color: var(--forest-950); font-family: var(--display); 
 .trust-item { display: grid; grid-template-columns: 28px 1fr; gap: 10px; }
 .icon-dot { display: grid; place-items: center; width: 28px; height: 28px; background: #e7f0ed; color: var(--forest-700); border-radius: 8px; }
 .notice { padding: 14px 16px; border-radius: 10px; background: #fff8df; border: 1px solid #f1db8d; color: #635520; font-size: 14px; line-height: 1.5; }
+.terms-document { padding: clamp(18px, 3vw, 28px); color: #263a34; background: #fbfcfc; border: 1px solid #d6e0dd; border-radius: 14px; font-size: 14px; line-height: 1.62; }
+.terms-heading { padding-bottom: 16px; margin-bottom: 18px; border-bottom: 1px solid #dfe7e4; }
+.terms-heading span { color: var(--forest-700); font-size: 11px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.terms-heading h3 { margin: 4px 0 2px; color: var(--forest-950); font-family: var(--display); font-size: 23px; }
+.terms-heading small { color: var(--muted); }
+.terms-document ol { display: grid; gap: 10px; padding-left: 24px; }
+.terms-document li { padding-left: 5px; }
+.terms-document li::marker { color: var(--forest-700); font-weight: 800; }
+.terms-note { padding: 12px 14px; margin-bottom: 0; background: #eef4f2; border-radius: 9px; }
+.consent-field { margin-top: 16px; }
+.consent-field .choice { align-items: flex-start; width: 100%; padding: 13px 14px; }
+.consent-field .choice input { flex: 0 0 auto; margin-top: 2px; }
 .success { padding: 52px clamp(24px, 6vw, 72px); text-align: center; }
 .success-icon { display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto 18px; color: white; background: var(--forest-700); border-radius: 50%; }
 

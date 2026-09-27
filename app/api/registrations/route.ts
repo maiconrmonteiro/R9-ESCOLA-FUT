@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       school_grade: d.schoolGrade || null,
       school_shift: d.schoolShift,
       address: { zipCode: d.zipCode, street: d.street, number: d.number, complement: d.complement, neighborhood: d.neighborhood, city: d.city, state: d.state.toUpperCase() },
-      family: { motherName: d.motherName, motherPhone: d.motherPhone, fatherName: d.fatherName, fatherPhone: d.fatherPhone },
+      family: { motherName: d.motherName, motherPhone: d.motherPhone, fatherName: d.fatherName, fatherPhone: d.fatherPhone, guardianCpf: d.guardianCpf, guardianIdentity: d.guardianIdentity },
       guardian_name: d.guardianName,
       guardian_relationship: d.guardianRelationship,
       guardian_phone: d.guardianPhone,
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       responsibility_accepted: d.termsAccepted,
       image_consent: d.imageConsent,
       signer_name: d.signerName,
-      terms_version: "PENDENTE_REVISAO_2026-01",
+      terms_version: "RS9-2026-01",
       accepted_at: new Date().toISOString(),
     });
     if (error) {

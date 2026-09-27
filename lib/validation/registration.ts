@@ -24,6 +24,8 @@ export const registrationSchema = z.object({
   fatherName: optionalText,
   fatherPhone: z.string().trim().max(20).optional(),
   guardianName: z.string().trim().min(3, "Informe o nome do responsável").max(120),
+  guardianCpf: z.string().trim().min(11, "Informe o CPF do responsável").max(14),
+  guardianIdentity: z.string().trim().min(4, "Informe a identidade do responsável").max(30),
   guardianRelationship: z.string().trim().min(2, "Informe o vínculo").max(40),
   guardianPhone: phone,
   guardianEmail: z.string().trim().email("Informe um e-mail válido").max(160),
@@ -39,7 +41,7 @@ export const registrationSchema = z.object({
   allergies: z.array(z.string().max(80)).max(12),
   otherAllergies: optionalText,
   termsAccepted: z.literal(true, { error: "É necessário aceitar o termo" }),
-  imageConsent: z.boolean(),
+  imageConsent: z.literal(true, { error: "É necessário autorizar o uso de imagem" }),
   signerName: z.string().trim().min(3, "Digite o nome de quem confirma").max(120),
   honeypot: z.string().max(0).optional(),
 });
