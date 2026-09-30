@@ -79,11 +79,29 @@
   .header h1 { font-size: 38px; }
   .actions { width: 100%; }
   .actions > * { flex: 1; padding-inline: 12px; }
-  .stats { display: flex; margin-inline: -16px; padding: 0 16px 8px; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
-  .stats::-webkit-scrollbar { display: none; }
-  .stat { min-width: 220px; min-height: 138px; padding: 16px; scroll-snap-align: start; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stat { min-width: 0; min-height: 138px; padding: 14px; }
+  .statTop { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .statLabel { font-size: 12px; }
+  .statBottom { align-items: flex-start; flex-direction: column; }
   .statValue { font-size: 37px; }
+  .statLive { font-size: 9px; white-space: normal; }
   .recent { border-radius: 16px; }
   .recentHead { min-height: 74px; padding: 16px; }
+  .recentTable { overflow: visible; }
+  .recentTable :global(table),
+  .recentTable :global(tbody),
+  .recentTable :global(tr),
+  .recentTable :global(td) { display: block; width: 100%; }
+  .recentTable :global(thead) { display: none; }
+  .recentTable :global(tbody) { padding: 6px 14px 14px; }
+  .recentTable :global(tr) { position: relative; padding: 12px 46px 12px 0; border-bottom: 1px solid #ebf0ee; }
+  .recentTable :global(tr:last-child) { border-bottom: 0; }
+  .recentTable :global(td) { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 5px 0; border: 0; white-space: normal; text-align: right; overflow-wrap: anywhere; }
+  .recentTable :global(td::before) { content: attr(data-label); flex: 0 0 auto; color: #64726e; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+  .recentTable :global(td:first-child) { justify-content: flex-start; padding-top: 2px; padding-bottom: 9px; text-align: left; }
+  .recentTable :global(td:first-child::before) { display: none; }
+  .recentTable .rowLink { position: absolute; top: 12px; right: 0; width: auto; padding: 0; }
+  .recentTable .rowLink::before { display: none; }
   .empty { min-height: 270px; padding-inline: 22px; }
 }
