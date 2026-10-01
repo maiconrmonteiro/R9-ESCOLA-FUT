@@ -202,6 +202,45 @@ tr:last-child td { border-bottom: 0; }
 .data-item span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
 .data-item strong { font-size: 15px; overflow-wrap: anywhere; }
 
+.btn-edit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #f8faf9;
+  color: var(--forest-700);
+  font-size: 13px;
+  font-weight: 720;
+  cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s, transform .18s;
+}
+.btn-edit-toggle:hover {
+  background: var(--forest-700);
+  color: white;
+  border-color: var(--forest-700);
+  transform: translateY(-1px);
+}
+.btn-edit-cancel {
+  color: var(--danger);
+  border-color: #f0d0d0;
+  background: #fdf5f5;
+}
+.btn-edit-cancel:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 900px) {
   .construction-content { grid-template-columns: 1fr; padding: 54px 0; text-align: center; }
   .construction-copy { margin-inline: auto; }

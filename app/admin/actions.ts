@@ -44,3 +44,54 @@ export async function updateInternalData(formData: FormData) {
   if (!error) await supabase.from("registration_events").insert({ registration_id: id, actor_id: user.id, event_type: "internal_data_updated", metadata: fields });
   revalidatePath(`/admin/inscricoes/${id}`);
 }
+
+export async function updateRegistrationFields(formData: FormData) {
+  const id = String(formData.get("id"));
+  const fieldsJson = String(formData.get("fields") || "{}");
+  if (!id) return;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/admin/login");
+
+  let incoming: Record<string, unknown>;
+  try { incoming = JSON.parse(fieldsJson); } catch { return; }
+
+  // Separate JSONB merge fields from flat columns
+  const jsonbKeys = ["address", "family", "health"] as const;
+  const flatUpdate: Record<string, unknown> = {};
+  const jsonbMerges: Record<string, Record<string, unknown>> = {};
+
+  for (const [key, value] of Object.entries(incoming)) {
+    if (jsonbKeys.includes(key as typeof jsonbKeys[number]) && typeof value === "object" && value !== null) {
+      jsonbMerges[key] = value as Record<string, unknown>;
+    } else {
+      flatUpdate[key] = value;
+    }
+  }
+
+  // If there are JSONB merges, fetch current row first
+  if (Object.keys(jsonbMerges).length > 0) {
+    const { data: current } = await supabase.from("registrations").select("address, family, health").eq("id", id).single();
+    if (current) {
+      for (const [key, partial] of Object.entries(jsonbMerges)) {
+        const existing = (current as Record<string, unknown>)[key] as Record<string, unknown> ?? {};
+        flatUpdate[key] = { ...existing, ...partial };
+      }
+    }
+  }
+
+  if (Object.keys(flatUpdate).length === 0) return;
+
+  const { error } = await supabase.from("registrations").update(flatUpdate).eq("id", id);
+  if (!error) {
+    await supabase.from("registration_events").insert({
+      registration_id: id,
+      actor_id: user.id,
+      event_type: "fields_updated",
+      metadata: { updated_fields: Object.keys(flatUpdate) },
+    });
+  }
+  revalidatePath("/admin");
+  revalidatePath(`/admin/inscricoes/${id}`);
+}
