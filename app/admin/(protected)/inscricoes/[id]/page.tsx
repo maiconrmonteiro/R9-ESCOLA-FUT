@@ -124,16 +124,19 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
           <section className="card detail-card">
             <h2>Decisão</h2>
             <StatusBadge status={row.status} />
+            <div style={{ marginTop: 18 }}>
+              <ApprovalConfirmation
+                canApprove={row.status === "pending"}
+                registrationId={row.id}
+                athleteName={row.athlete_name}
+                guardianName={row.guardian_name}
+                guardianPhone={row.guardian_phone}
+                initialClassId={row.class_id}
+                classes={classes}
+              />
+            </div>
             {row.status === "pending" && (
               <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
-                <ApprovalConfirmation
-                  registrationId={row.id}
-                  athleteName={row.athlete_name}
-                  guardianName={row.guardian_name}
-                  guardianPhone={row.guardian_phone}
-                  initialClassId={row.class_id}
-                  classes={classes}
-                />
                 <form action={rejectRegistration}>
                   <input type="hidden" name="id" value={row.id} />
                   <input type="hidden" name="status" value="rejected" />

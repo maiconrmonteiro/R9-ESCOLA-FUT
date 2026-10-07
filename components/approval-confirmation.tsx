@@ -14,6 +14,7 @@ type ClassOption = {
 };
 
 type Props = {
+  canApprove: boolean;
   registrationId: string;
   athleteName: string;
   guardianName: string;
@@ -30,7 +31,7 @@ function whatsappNumber(phone: string) {
   return digits.startsWith("55") ? digits : `55${digits}`;
 }
 
-export function ApprovalConfirmation({ registrationId, athleteName, guardianName, guardianPhone, initialClassId, classes }: Props) {
+export function ApprovalConfirmation({ canApprove, registrationId, athleteName, guardianName, guardianPhone, initialClassId, classes }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [classId, setClassId] = useState(initialClassId ?? "");
   const [pending, setPending] = useState(false);
@@ -64,7 +65,7 @@ export function ApprovalConfirmation({ registrationId, athleteName, guardianName
 
   return (
     <>
-      <div className="approval-box">
+      {canApprove && <div className="approval-box">
         <label className="field">
           <span>Turma para aprovação</span>
           <select value={classId} onChange={event => { setClassId(event.target.value); setError(""); }}>
@@ -77,7 +78,7 @@ export function ApprovalConfirmation({ registrationId, athleteName, guardianName
         <button type="button" className="btn btn-primary" disabled={pending} onClick={approve} style={{ width: "100%" }}>
           <Check size={17}/>{pending ? "Aprovando…" : "Aprovar atleta"}
         </button>
-      </div>
+      </div>}
 
       <dialog ref={dialogRef} className="approval-modal" onCancel={() => dialogRef.current?.close()}>
         <div className="approval-modal-panel">
