@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Check, MessageCircle, X } from "lucide-react";
 import { decideRegistration } from "@/app/admin/actions";
+import styles from "./approval-confirmation.module.css";
 
 type ClassOption = {
   id: string;
@@ -65,7 +66,7 @@ export function ApprovalConfirmation({ canApprove, registrationId, athleteName, 
 
   return (
     <>
-      {canApprove && <div className="approval-box">
+      {canApprove && <div className={styles.box}>
         <label className="field">
           <span>Turma para aprovação</span>
           <select value={classId} onChange={event => { setClassId(event.target.value); setError(""); }}>
@@ -73,22 +74,22 @@ export function ApprovalConfirmation({ canApprove, registrationId, athleteName, 
             {classes.map(item => <option key={item.id} value={item.id}>{item.name} — {item.shift}</option>)}
           </select>
         </label>
-        {selectedClass && <p className="approval-schedule">{selectedClass.training_days} · {time(selectedClass.start_time)} às {time(selectedClass.end_time)}</p>}
-        {error && <p className="error" role="alert">{error}</p>}
+        {selectedClass && <p className={styles.schedule}>{selectedClass.training_days} · {time(selectedClass.start_time)} às {time(selectedClass.end_time)}</p>}
+        {error && <p className={styles.error} role="alert">{error}</p>}
         <button type="button" className="btn btn-primary" disabled={pending} onClick={approve} style={{ width: "100%" }}>
           <Check size={17}/>{pending ? "Aprovando…" : "Aprovar atleta"}
         </button>
       </div>}
 
-      <dialog ref={dialogRef} className="approval-modal" onCancel={() => dialogRef.current?.close()}>
-        <div className="approval-modal-panel">
-          <button className="approval-modal-close" type="button" aria-label="Fechar" onClick={() => dialogRef.current?.close()}><X size={19}/></button>
-          <span className="approval-modal-icon"><Check size={26}/></span>
+      <dialog ref={dialogRef} className={styles.modal} onCancel={() => dialogRef.current?.close()}>
+        <div className={styles.panel}>
+          <button className={styles.close} type="button" aria-label="Fechar" onClick={() => dialogRef.current?.close()}><X size={19}/></button>
+          <span className={styles.icon}><Check size={26}/></span>
           <p className="eyebrow">Cadastro aprovado</p>
           <h2>Enviar confirmação ao responsável?</h2>
-          <p>A conversa de <strong>{guardianName}</strong> será aberta no WhatsApp com a mensagem pronta.</p>
-          <div className="approval-message-preview">{message}</div>
-          <div className="approval-modal-actions">
+          <p className={styles.description}>A conversa de <strong>{guardianName}</strong> será aberta no WhatsApp com a mensagem pronta.</p>
+          <div className={styles.preview}>{message}</div>
+          <div className={styles.actions}>
             <button type="button" className="btn btn-secondary" onClick={() => dialogRef.current?.close()}>Agora não</button>
             <a className="btn btn-primary" href={whatsappUrl} target="_blank" rel="noreferrer" onClick={() => dialogRef.current?.close()}><MessageCircle size={18}/> Abrir WhatsApp</a>
           </div>

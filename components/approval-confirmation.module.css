@@ -1,0 +1,19 @@
+.box { display: grid; gap: 10px; }
+.schedule { margin: -2px 0 2px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.error { margin: 0; color: var(--danger); font-size: 12px; }
+.box button:disabled { cursor: wait; opacity: .7; }
+.modal { position: fixed; inset: 0; width: min(560px, calc(100% - 30px)); max-width: calc(100% - 30px); max-height: calc(100dvh - 30px); margin: auto; padding: 0; overflow: hidden; background: white; border: 0; border-radius: 20px; box-shadow: 0 28px 90px rgba(3,45,38,.3); }
+.modal::backdrop { background: rgba(3,31,26,.58); backdrop-filter: blur(3px); }
+.panel { position: relative; padding: 30px; }
+.close { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; width: 38px; height: 38px; color: var(--muted); background: #eef3f1; border: 0; border-radius: 10px; }
+.icon { display: grid; place-items: center; width: 54px; height: 54px; margin-bottom: 18px; color: #087650; background: #e2f4ec; border-radius: 16px; }
+.modal h2 { margin: 6px 45px 8px 0; color: var(--forest-950); font-size: 24px; }
+.description { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.preview { max-height: 210px; margin-top: 20px; padding: 16px; overflow-y: auto; color: #2e443e; background: #f3f7f5; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+
+@media (max-width: 620px) {
+  .panel { padding: 24px 20px 20px; }
+  .actions { flex-direction: column-reverse; }
+  .actions :global(.btn) { width: 100%; }
+}

@@ -14,6 +14,6 @@ export function AttendanceCallScreen({ sessionId, initialDate, className, shift,
 
   return <>
     <header className="call-head"><Link href="/admin/chamadas"><ArrowLeft size={16}/> Voltar</Link><p>Chamada expressa</p><h1>{className}</h1><div><span>{shift}</span><EditableCallDate sessionId={sessionId} initialDate={initialDate} onDateChange={setSessionDate}/><span><Clock3 size={15}/>{startTime.slice(0,5)} às {endTime.slice(0,5)}</span></div></header>
-    <AttendanceCall sessionId={sessionId} sessionDate={sessionDate} athletes={athletes} initial={initial} finalized={finalized} initialNotes={initialNotes}/>
+    <AttendanceCall sessionId={sessionId} sessionDate={sessionDate} className={className} shift={shift} startTime={startTime} endTime={endTime} athletes={athletes} initial={initial} finalized={finalized} initialNotes={initialNotes}/>
   </>;
 }

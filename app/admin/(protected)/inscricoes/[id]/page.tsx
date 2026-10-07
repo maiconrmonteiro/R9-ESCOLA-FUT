@@ -6,7 +6,7 @@ import type { Registration } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { EditableSection, type FieldDef } from "@/components/editable-section";
-import { rejectRegistration, updateInternalData } from "@/app/admin/actions";
+import { rejectRegistration } from "@/app/admin/actions";
 import { ApprovalConfirmation } from "@/components/approval-confirmation";
 
 export default async function RegistrationDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -124,6 +124,9 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
           <section className="card detail-card">
             <h2>Decisão</h2>
             <StatusBadge status={row.status} />
+            <p style={{ fontSize: 13, color: "var(--muted)", margin: "12px 0 0" }}>
+              Matrícula <strong style={{ color: "var(--ink)" }}>{row.enrollment_number ?? "aguardando geração"}</strong>
+            </p>
             <div style={{ marginTop: 18 }}>
               <ApprovalConfirmation
                 canApprove={row.status === "pending"}
@@ -155,19 +158,6 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
             )}
           </section>
 
-          <form action={updateInternalData} className="card detail-card">
-            <input type="hidden" name="id" value={row.id} />
-            <h2>Dados da escola</h2>
-            <div style={{ display: "grid", gap: 14 }}>
-              <div className="field"><label>Matrícula</label><input name="enrollmentNumber" defaultValue={row.enrollment_number ?? ""} /></div>
-              <div className="field"><label>Categoria</label><input name="category" defaultValue={row.category ?? ""} /></div>
-              <div className="field"><label>Turma</label><select name="classId" defaultValue={row.class_id ?? ""}><option value="">Sem turma</option>{classes.map(item => <option key={item.id} value={item.id}>{item.name} — {item.shift}</option>)}</select></div>
-              <div className="field"><label>Dias</label><input value={row.training_days ?? "—"} readOnly aria-readonly="true" /></div>
-              <div className="field"><label>Horário</label><input value={row.training_time ?? "—"} readOnly aria-readonly="true" /></div>
-              <div className="field"><label>Início</label><input type="date" name="startDate" defaultValue={row.start_date ?? ""} /></div>
-              <button className="btn btn-secondary">Salvar dados internos</button>
-            </div>
-          </form>
         </aside>
       </div>
     </>

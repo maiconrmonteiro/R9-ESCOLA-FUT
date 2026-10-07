@@ -45,18 +45,6 @@ export async function rejectRegistration(formData: FormData) {
   await decideRegistration(formData);
 }
 
-export async function updateInternalData(formData: FormData) {
-  const id = String(formData.get("id"));
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/admin/login");
-  const classId = String(formData.get("classId") || "") || null;
-  const fields = { enrollment_number: formData.get("enrollmentNumber") || null, category: formData.get("category") || null, class_id: classId, start_date: formData.get("startDate") || null };
-  const { error } = await supabase.from("registrations").update(fields).eq("id", id);
-  if (!error) await supabase.from("registration_events").insert({ registration_id: id, actor_id: user.id, event_type: "internal_data_updated", metadata: fields });
-  revalidatePath(`/admin/inscricoes/${id}`);
-}
-
 export async function updateRegistrationFields(formData: FormData) {
   const id = String(formData.get("id"));
   const fieldsJson = String(formData.get("fields") || "{}");
