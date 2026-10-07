@@ -20,18 +20,29 @@ export async function logout() {
 export async function decideRegistration(formData: FormData) {
   const id = String(formData.get("id"));
   const status = String(formData.get("status"));
-  if (!id || !["approved", "rejected"].includes(status)) return;
+  if (!id || !["approved", "rejected"].includes(status)) return { ok: false, error: "Decisão inválida." };
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
+  const classId = status === "approved" ? String(formData.get("classId") || "") || null : undefined;
+  if (status === "approved" && !classId) return { ok: false, error: "Selecione a turma do atleta antes de aprovar." };
+
   const { error } = await supabase.from("registrations").update({
     status,
+    ...(status === "approved" ? { class_id: classId } : {}),
     rejection_reason: status === "rejected" ? String(formData.get("rejectionReason") || "") || null : null,
     decided_at: new Date().toISOString(),
     decided_by: user.id,
   }).eq("id", id);
   if (!error) await supabase.from("registration_events").insert({ registration_id: id, actor_id: user.id, event_type: status, metadata: { reason: formData.get("rejectionReason") || null } });
   revalidatePath("/admin"); revalidatePath(`/admin/inscricoes/${id}`);
+  return error
+    ? { ok: false, error: "Não foi possível registrar a decisão. Tente novamente." }
+    : { ok: true };
+}
+
+export async function rejectRegistration(formData: FormData) {
+  await decideRegistration(formData);
 }
 
 export async function updateInternalData(formData: FormData) {

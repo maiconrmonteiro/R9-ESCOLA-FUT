@@ -6,7 +6,8 @@ import type { Registration } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { EditableSection, type FieldDef } from "@/components/editable-section";
-import { decideRegistration, updateInternalData } from "@/app/admin/actions";
+import { rejectRegistration, updateInternalData } from "@/app/admin/actions";
+import { ApprovalConfirmation } from "@/components/approval-confirmation";
 
 export default async function RegistrationDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -125,12 +126,15 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
             <StatusBadge status={row.status} />
             {row.status === "pending" && (
               <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
-                <form action={decideRegistration}>
-                  <input type="hidden" name="id" value={row.id} />
-                  <input type="hidden" name="status" value="approved" />
-                  <button className="btn btn-primary" style={{ width: "100%" }}>Aprovar atleta</button>
-                </form>
-                <form action={decideRegistration}>
+                <ApprovalConfirmation
+                  registrationId={row.id}
+                  athleteName={row.athlete_name}
+                  guardianName={row.guardian_name}
+                  guardianPhone={row.guardian_phone}
+                  initialClassId={row.class_id}
+                  classes={classes}
+                />
+                <form action={rejectRegistration}>
                   <input type="hidden" name="id" value={row.id} />
                   <input type="hidden" name="status" value="rejected" />
                   <div className="field">
