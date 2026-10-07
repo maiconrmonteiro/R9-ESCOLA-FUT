@@ -39,7 +39,8 @@ export async function updateInternalData(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
-  const fields = { enrollment_number: formData.get("enrollmentNumber") || null, category: formData.get("category") || null, class_name: formData.get("className") || null, training_days: formData.get("trainingDays") || null, training_time: formData.get("trainingTime") || null, start_date: formData.get("startDate") || null };
+  const classId = String(formData.get("classId") || "") || null;
+  const fields = { enrollment_number: formData.get("enrollmentNumber") || null, category: formData.get("category") || null, class_id: classId, start_date: formData.get("startDate") || null };
   const { error } = await supabase.from("registrations").update(fields).eq("id", id);
   if (!error) await supabase.from("registration_events").insert({ registration_id: id, actor_id: user.id, event_type: "internal_data_updated", metadata: fields });
   revalidatePath(`/admin/inscricoes/${id}`);

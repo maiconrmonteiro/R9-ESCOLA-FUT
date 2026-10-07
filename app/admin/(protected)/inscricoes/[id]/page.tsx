@@ -14,6 +14,8 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
   const supabase = await createClient();
   const { data } = await supabase.from("registrations").select("*").eq("id", id).single();
   if (!data) notFound();
+  const { data: classesData } = await supabase.from("classes").select("id,name,shift,training_days,start_time,end_time").order("name");
+  const classes = classesData ?? [];
   const row = data as Registration;
   const address = row.address ?? {};
   const family = row.family ?? {};
@@ -152,9 +154,9 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
             <div style={{ display: "grid", gap: 14 }}>
               <div className="field"><label>Matrícula</label><input name="enrollmentNumber" defaultValue={row.enrollment_number ?? ""} /></div>
               <div className="field"><label>Categoria</label><input name="category" defaultValue={row.category ?? ""} /></div>
-              <div className="field"><label>Turma</label><input name="className" defaultValue={row.class_name ?? ""} /></div>
-              <div className="field"><label>Dias</label><input name="trainingDays" defaultValue={row.training_days ?? ""} /></div>
-              <div className="field"><label>Horário</label><input name="trainingTime" defaultValue={row.training_time ?? ""} /></div>
+              <div className="field"><label>Turma</label><select name="classId" defaultValue={row.class_id ?? ""}><option value="">Sem turma</option>{classes.map(item => <option key={item.id} value={item.id}>{item.name} — {item.shift}</option>)}</select></div>
+              <div className="field"><label>Dias</label><input value={row.training_days ?? "—"} readOnly aria-readonly="true" /></div>
+              <div className="field"><label>Horário</label><input value={row.training_time ?? "—"} readOnly aria-readonly="true" /></div>
               <div className="field"><label>Início</label><input type="date" name="startDate" defaultValue={row.start_date ?? ""} /></div>
               <button className="btn btn-secondary">Salvar dados internos</button>
             </div>

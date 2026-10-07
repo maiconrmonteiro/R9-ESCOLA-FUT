@@ -27,6 +27,7 @@ export type Registration = {
   enrollment_number: string | null;
   category: string | null;
   class_name: string | null;
+  class_id: string | null;
   training_days: string | null;
   training_time: string | null;
   start_date: string | null;
