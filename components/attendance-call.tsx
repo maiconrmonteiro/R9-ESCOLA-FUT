@@ -7,7 +7,7 @@ import { finalizeCall, markAllPresent, markAttendance } from "@/app/admin/(prote
 type Athlete = { id: string; athlete_name: string; athlete_nickname: string | null };
 type Status = "C" | "F" | "FJ";
 
-export function AttendanceCall({ sessionId, athletes, initial, finalized, initialNotes }: { sessionId: string; athletes: Athlete[]; initial: Record<string, Status>; finalized: boolean; initialNotes: string }) {
+export function AttendanceCall({ sessionId, sessionDate, athletes, initial, finalized, initialNotes }: { sessionId: string; sessionDate: string; athletes: Athlete[]; initial: Record<string, Status>; finalized: boolean; initialNotes: string }) {
   const [marks, setMarks] = useState(initial); const [filter, setFilter] = useState<"all" | "pending" | "absence">("all"); const [query, setQuery] = useState("");
   const [isPending, startTransition] = useTransition(); const [message, setMessage] = useState(""); const [notes, setNotes] = useState(initialNotes); const [done, setDone] = useState(finalized);
   const counts = { C: Object.values(marks).filter(value => value === "C").length, F: Object.values(marks).filter(value => value === "F").length, FJ: Object.values(marks).filter(value => value === "FJ").length };
@@ -16,7 +16,7 @@ export function AttendanceCall({ sessionId, athletes, initial, finalized, initia
 
   function mark(athlete: Athlete, status: Status) { if (done) return; const previous = marks[athlete.id]; setMarks(current => ({ ...current, [athlete.id]: status })); setMessage(""); startTransition(async () => { const result = await markAttendance(sessionId, athlete.id, athlete.athlete_name, status); if (!result.ok) { setMarks(current => previous ? ({ ...current, [athlete.id]: previous }) : Object.fromEntries(Object.entries(current).filter(([id]) => id !== athlete.id))); setMessage("Não foi possível salvar. Tente novamente."); } }); }
   function allPresent() { if (done) return; const previous = marks; setMarks(Object.fromEntries(athletes.map(athlete => [athlete.id, "C"]))); startTransition(async () => { const result = await markAllPresent(sessionId); if (!result.ok) { setMarks(previous); setMessage("Não foi possível marcar todos."); } }); }
-  function finish() { startTransition(async () => { const result = await finalizeCall(sessionId, notes); if (result.ok) { setDone(true); setMessage("Chamada finalizada com sucesso."); } else setMessage(result.error ?? "Não foi possível finalizar."); }); }
+  function finish() { startTransition(async () => { const result = await finalizeCall(sessionId, notes, sessionDate); if (result.ok) { setDone(true); setMessage("Chamada finalizada com sucesso. Data e marcações foram salvas."); } else setMessage(result.error ?? "Não foi possível finalizar."); }); }
 
   return <div className="call-shell">
     {done && <div className="call-finished"><ShieldCheck size={20}/><div><strong>Chamada finalizada</strong><span>Você ainda pode consultar as marcações abaixo.</span></div></div>}

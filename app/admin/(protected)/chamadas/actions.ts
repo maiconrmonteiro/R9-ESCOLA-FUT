@@ -48,7 +48,8 @@ export async function markAllPresent(sessionId: string) {
   return { ok: !error };
 }
 
-export async function finalizeCall(sessionId: string, notes: string) {
+export async function finalizeCall(sessionId: string, notes: string, sessionDate: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(sessionDate)) return { ok: false, error: "Informe uma data válida para finalizar a chamada." };
   const { supabase } = await authenticatedClient();
   const { data: session } = await supabase.from("attendance_sessions").select("class_id").eq("id", sessionId).single();
   if (!session) return { ok: false, error: "Chamada não encontrada." };
@@ -57,7 +58,8 @@ export async function finalizeCall(sessionId: string, notes: string) {
     supabase.from("attendance_records").select("id", { count: "exact", head: true }).eq("session_id", sessionId),
   ]);
   if ((recordCount ?? 0) < (athleteCount ?? 0)) return { ok: false, error: `Ainda existem ${(athleteCount ?? 0) - (recordCount ?? 0)} atleta(s) sem marcação.` };
-  const { error } = await supabase.from("attendance_sessions").update({ session_status: "finalized", finalized_at: new Date().toISOString(), notes: notes.trim() || null }).eq("id", sessionId);
+  const { error } = await supabase.from("attendance_sessions").update({ session_date: sessionDate, session_status: "finalized", finalized_at: new Date().toISOString(), notes: notes.trim() || null }).eq("id", sessionId);
+  if (error?.code === "23505") return { ok: false, error: "Já existe uma chamada desta turma nessa data." };
   if (error) return { ok: false, error: "Não foi possível finalizar a chamada." };
   revalidatePath("/admin"); revalidatePath("/admin/chamadas"); revalidatePath("/admin/relatorios/presencas");
   return { ok: true };

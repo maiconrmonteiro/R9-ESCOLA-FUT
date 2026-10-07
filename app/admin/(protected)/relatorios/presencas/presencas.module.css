@@ -1,31 +1,16 @@
-.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-.kpis > div { display: grid; grid-template-columns: 40px auto; grid-template-rows: auto auto; align-items: center; gap: 2px 11px; padding: 16px; background: white; border: 1px solid var(--line); border-radius: 15px; }
-.kpis span:first-child { grid-row: 1 / 3; display: grid; place-items: center; width: 40px; height: 40px; color: var(--forest-700); background: #e7f0ed; border-radius: 10px; }
-.kpis strong { color: var(--forest-950); font-size: 23px; line-height: 1; }
-.kpis small { color: var(--muted); font-size: 11px; }
-.positive span:first-child { color: #087650; background: #e2f4ec; }
-.negative span:first-child { color: #a93636; background: #f8dddd; }
-.warning span:first-child, .review span:first-child { color: #8b6b08; background: #ffedb0; }
-.review { background: #fffaf0 !important; border-color: #efdda0 !important; }
-.total { color: var(--muted); font-size: 13px; }
-.status { display: inline-flex; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; }
-.statusC { color: #126044; background: #dcefe7; }
-.statusF { color: #903636; background: #f8dddd; }
-.statusFJ { color: #795f0a; background: #fff2c5; }
-.athleteLink { color: var(--forest-700); font-weight: 750; }
-.athleteLink:hover { text-decoration: underline; }
-.reviewTag { display: inline-flex; align-items: center; gap: 5px; color: #856510; font-size: 12px; font-weight: 750; }
-.matched { color: #257057; font-size: 12px; font-weight: 750; }
-.reviewControl { position: relative; }
-.reviewControl summary { cursor: pointer; list-style: none; }
-.reviewControl summary::-webkit-details-marker { display: none; }
-.reviewControl form { position: absolute; z-index: 8; right: 0; width: min(390px, calc(100vw - 50px)); margin-top: 9px; padding: 16px; background: white; border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 18px 48px rgba(5,46,39,.2); }
-.reviewControl label { display: grid; gap: 7px; }
-.reviewControl label span { color: #263a34; font-size: 13px; font-weight: 750; }
-.reviewControl select { width: 100%; min-height: 46px; padding: 10px 12px; color: var(--ink); background: #fcfdfd; border: 1px solid #cbd8d4; border-radius: 9px; }
-.reviewControl button { width: 100%; min-height: 43px; margin-top: 11px; }
-.errorMessage, .successMessage { margin: -12px 0 20px; padding: 13px 16px; border: 1px solid; border-radius: 11px; font-size: 14px; }
-.errorMessage { color: #8d3030; background: #fff0f0; border-color: #efcaca; }
-.successMessage { color: #176047; background: #e9f6f0; border-color: #bde0d1; }
-@media (max-width: 1050px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 620px) { .kpis { display: flex; margin-inline: -16px; padding: 0 16px 8px; overflow-x: auto; } .kpis > div { min-width: 190px; } .total { display: none; } }
+.kpis { display:grid;grid-template-columns:repeat(2,minmax(0,260px));gap:12px }
+.kpis>div { display:grid;grid-template-columns:44px auto;grid-template-rows:auto auto;align-items:center;gap:2px 12px;padding:18px;background:white;border:1px solid var(--line);border-radius:15px }
+.kpis span:first-child { grid-row:1/3;display:grid;place-items:center;width:44px;height:44px;border-radius:11px }
+.kpis strong { color:var(--forest-950);font-size:27px;line-height:1 }
+.kpis small { color:var(--muted);font-size:12px }
+.positive span:first-child { color:#087650;background:#e2f4ec }
+.negative span:first-child { color:#a93636;background:#f8dddd }
+.total { color:var(--muted);font-size:13px }
+.rate { display:inline-flex;min-width:58px;justify-content:center;padding:6px 10px;border-radius:999px;font-size:13px;font-weight:850 }
+.presentRate { color:#126044;background:#dcefe7 }
+.absenceRate { color:#903636;background:#f8dddd }
+.rowLink { color:var(--forest-700);font-weight:800 }
+.rowLink:hover { text-decoration:underline }
+.openCall { display:inline-flex;align-items:center;gap:6px;color:var(--forest-700);font-size:13px;font-weight:800 }
+.openCall:hover { text-decoration:underline }
+@media(max-width:620px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis>div{grid-template-columns:36px auto;padding:13px;gap:2px 8px}.kpis span:first-child{width:36px;height:36px}.kpis strong{font-size:22px}.total{display:none}}
