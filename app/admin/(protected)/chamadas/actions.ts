@@ -62,3 +62,13 @@ export async function finalizeCall(sessionId: string, notes: string) {
   revalidatePath("/admin"); revalidatePath("/admin/chamadas"); revalidatePath("/admin/relatorios/presencas");
   return { ok: true };
 }
+
+export async function updateCallDate(sessionId: string, sessionDate: string) {
+  if (!sessionId || !/^\d{4}-\d{2}-\d{2}$/.test(sessionDate)) return { ok: false, error: "Data inválida." };
+  const { supabase } = await authenticatedClient();
+  const { error } = await supabase.from("attendance_sessions").update({ session_date: sessionDate }).eq("id", sessionId);
+  if (error?.code === "23505") return { ok: false, error: "Já existe uma chamada desta turma nessa data." };
+  if (error) return { ok: false, error: "Não foi possível alterar a data." };
+  revalidatePath(`/admin/chamadas/${sessionId}`); revalidatePath("/admin/chamadas"); revalidatePath("/admin/relatorios/presencas"); revalidatePath("/admin");
+  return { ok: true };
+}

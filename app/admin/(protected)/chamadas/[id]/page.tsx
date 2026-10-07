@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Clock3 } from "lucide-react";
+import { ArrowLeft, Clock3 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AttendanceCall } from "@/components/attendance-call";
+import { EditableCallDate } from "@/components/editable-call-date";
 import "../call.css";
 
 type Status = "C" | "F" | "FJ";
@@ -16,5 +17,5 @@ export default async function CallDetail({ params }: { params: Promise<{ id: str
     supabase.from("attendance_records").select("registration_id,status").eq("session_id", id),
   ]);
   const initial = Object.fromEntries((records ?? []).filter(item => item.registration_id).map(item => [item.registration_id!, item.status as Status]));
-  return <><header className="call-head"><Link href="/admin/chamadas"><ArrowLeft size={16}/> Voltar</Link><p>Chamada expressa</p><h1>{classData.name}</h1><div><span>{classData.shift}</span><span><CalendarDays size={15}/>{new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${session.session_date}T12:00:00Z`))}</span><span><Clock3 size={15}/>{classData.start_time.slice(0,5)} às {classData.end_time.slice(0,5)}</span></div></header><AttendanceCall sessionId={id} athletes={athletes ?? []} initial={initial} finalized={session.session_status === "finalized"} initialNotes={session.notes ?? ""}/></>;
+  return <><header className="call-head"><Link href="/admin/chamadas"><ArrowLeft size={16}/> Voltar</Link><p>Chamada expressa</p><h1>{classData.name}</h1><div><span>{classData.shift}</span><EditableCallDate sessionId={id} initialDate={session.session_date}/><span><Clock3 size={15}/>{classData.start_time.slice(0,5)} às {classData.end_time.slice(0,5)}</span></div></header><AttendanceCall sessionId={id} athletes={athletes ?? []} initial={initial} finalized={session.session_status === "finalized"} initialNotes={session.notes ?? ""}/></>;
 }
