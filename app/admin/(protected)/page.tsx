@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CalendarRange, CheckCircle2, ClipboardCheck, Clock3, TrendingUp, UserRoundX, UsersRound } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarRange, CheckCircle2, Clock3, TrendingUp, UserRoundX, UsersRound } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Registration } from "@/lib/types";
 import { formatDate, initials } from "@/lib/utils";
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
     { label: "Turmas cadastradas", value: classes.length, suffix: "", icon: CalendarRange, href: "/admin/turmas", tone: "neutral" },
     { label: "Atletas sem turma", value: unlinked, suffix: "", icon: UserRoundX, href: "/admin/turmas", tone: unlinked ? "warning" : "success" },
     { label: "Frequência geral", value: attendanceRate, suffix: "%", icon: TrendingUp, href: "/admin/relatorios/presencas", tone: attendanceRate < 75 ? "warning" : "success" },
-    { label: "Vínculos para revisar", value: reviews, suffix: "", icon: ClipboardCheck, href: "/admin/relatorios/presencas", tone: reviews ? "warning" : "success" },
+    { label: "Inscrições pendentes", value: pendingRegistrations, suffix: "", icon: Clock3, href: "/admin/inscricoes?status=pending", tone: pendingRegistrations ? "warning" : "success" },
   ];
 
   return <>

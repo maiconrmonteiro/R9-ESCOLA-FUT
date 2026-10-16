@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { titleCase } from "@/lib/utils";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -45,6 +46,22 @@ export async function rejectRegistration(formData: FormData) {
   await decideRegistration(formData);
 }
 
+export async function deleteRegistration(formData: FormData) {
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/admin/login");
+
+  const { error } = await supabase.from("registrations").delete().eq("id", id);
+  if (error) redirect(`/admin/inscricoes/${id}?erro=excluir`);
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/inscricoes");
+  redirect("/admin/inscricoes?sucesso=excluida");
+}
+
 export async function updateRegistrationFields(formData: FormData) {
   const id = String(formData.get("id"));
   const fieldsJson = String(formData.get("fields") || "{}");
@@ -56,6 +73,16 @@ export async function updateRegistrationFields(formData: FormData) {
 
   let incoming: Record<string, unknown>;
   try { incoming = JSON.parse(fieldsJson); } catch { return; }
+
+  for (const key of ["athlete_name", "athlete_nickname", "guardian_name", "signer_name"]) {
+    if (typeof incoming[key] === "string") incoming[key] = titleCase(incoming[key]);
+  }
+  if (incoming.family && typeof incoming.family === "object") {
+    const family = incoming.family as Record<string, unknown>;
+    for (const key of ["motherName", "fatherName"]) {
+      if (typeof family[key] === "string") family[key] = titleCase(family[key]);
+    }
+  }
 
   // Separate JSONB merge fields from flat columns
   const jsonbKeys = ["address", "family", "health"] as const;

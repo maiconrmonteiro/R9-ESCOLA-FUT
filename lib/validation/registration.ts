@@ -6,7 +6,9 @@ const phone = z.string().trim().min(10, "Informe um telefone válido").max(20);
 export const registrationSchema = z.object({
   athleteName: z.string().trim().min(3, "Informe o nome completo").max(120),
   athleteNickname: optionalText,
-  birthDate: z.string().date("Informe uma data válida"),
+  birthDate: z.string()
+    .date("Informe uma data válida")
+    .refine((value) => value <= new Date().toISOString().slice(0, 10), "A data de nascimento não pode estar no futuro"),
   athleteDocument: optionalText,
   naturality: optionalText,
   schoolName: optionalText,

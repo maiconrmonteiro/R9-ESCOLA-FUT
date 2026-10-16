@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { registrationSchema } from "@/lib/validation/registration";
+import { titleCase } from "@/lib/utils";
 
 export async function POST(request: Request) {
   try {
@@ -12,9 +13,9 @@ export async function POST(request: Request) {
 
     const d = parsed.data;
     const supabase = await createClient();
-    const { error } = await supabase.from("registrations").insert({
-      athlete_name: d.athleteName,
-      athlete_nickname: d.athleteNickname || null,
+    const registration = {
+      athlete_name: titleCase(d.athleteName),
+      athlete_nickname: d.athleteNickname ? titleCase(d.athleteNickname) : null,
       birth_date: d.birthDate,
       athlete_document: d.athleteDocument || null,
       naturality: d.naturality || null,
@@ -22,8 +23,8 @@ export async function POST(request: Request) {
       school_grade: d.schoolGrade || null,
       school_shift: d.schoolShift,
       address: { zipCode: d.zipCode, street: d.street, number: d.number, complement: d.complement, neighborhood: d.neighborhood, city: d.city, state: d.state.toUpperCase() },
-      family: { motherName: d.motherName, motherPhone: d.motherPhone, fatherName: d.fatherName, fatherPhone: d.fatherPhone, guardianCpf: d.guardianCpf, guardianIdentity: d.guardianIdentity },
-      guardian_name: d.guardianName,
+      family: { motherName: titleCase(d.motherName || ""), motherPhone: d.motherPhone, fatherName: titleCase(d.fatherName || ""), fatherPhone: d.fatherPhone, guardianCpf: d.guardianCpf, guardianIdentity: d.guardianIdentity },
+      guardian_name: titleCase(d.guardianName),
       guardian_relationship: d.guardianRelationship,
       guardian_phone: d.guardianPhone,
       guardian_email: d.guardianEmail.toLowerCase(),
@@ -31,12 +32,46 @@ export async function POST(request: Request) {
       allergies: d.allergies,
       responsibility_accepted: d.termsAccepted,
       image_consent: d.imageConsent,
-      signer_name: d.signerName,
+      signer_name: titleCase(d.signerName),
       terms_version: "RS9-2026-01",
       accepted_at: new Date().toISOString(),
-    });
+    };
+
+    const { error } = await supabase.from("registrations").insert(registration);
+
     if (error) {
-      console.error("registration_insert_failed", error.code);
+      if (error.code === "23505" && error.message.includes("registrations_pending_duplicate_idx")) {
+        return NextResponse.json(
+          { message: "Já existe uma inscrição pendente para este atleta. Não é necessário enviar novamente." },
+          { status: 409 },
+        );
+      }
+
+      if (error.code === "23505" && error.message.includes("registrations_enrollment_number_key")) {
+        console.error("registration_enrollment_sequence_out_of_sync", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+        });
+        return NextResponse.json(
+          { message: "Não foi possível gerar a matrícula. A escola foi avisada; tente novamente após a correção." },
+          { status: 503 },
+        );
+      }
+
+      if (error.code === "23514" && error.message.includes("birth_date")) {
+        return NextResponse.json(
+          { message: "A data de nascimento não pode estar no futuro." },
+          { status: 400 },
+        );
+      }
+
+      console.error("registration_insert_failed", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
       return NextResponse.json({ message: "Não foi possível concluir o envio. Tente novamente em instantes." }, { status: 500 });
     }
     return NextResponse.json({ ok: true }, { status: 201 });

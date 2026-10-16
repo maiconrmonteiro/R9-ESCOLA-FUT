@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, Check, LoaderCircle } from "lucide-react";
 import { registrationSchema, type RegistrationInput } from "@/lib/validation/registration";
+import { titleCase } from "@/lib/utils";
 
 const steps = ["Atleta", "Família", "Saúde", "Termo", "Revisão"];
 const allergyOptions = ["Leite e lactose", "Glúten", "Picada de insetos", "Pelos de animais", "Poeira", "Respiratória", "Hipertensão", "Diabetes"];
@@ -40,6 +41,12 @@ const stepFields: Array<Array<keyof RegistrationInput>> = [
   [],
 ];
 
+const nameFieldsByStep: Partial<Record<number, Array<keyof RegistrationInput>>> = {
+  0: ["athleteName", "athleteNickname"],
+  1: ["motherName", "fatherName", "guardianName"],
+  3: ["signerName"],
+};
+
 function ageFrom(date: string) {
   if (!date) return null;
   const birth = new Date(`${date}T12:00:00`); const now = new Date();
@@ -56,6 +63,7 @@ export function RegistrationForm({ adminMode = false }: { adminMode?: boolean })
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [submittedCurrentReview, setSubmittedCurrentReview] = useState(false);
   const lastCep = useRef("");
   const { register, handleSubmit, watch, setValue, trigger, formState: { errors, isSubmitting } } = useForm<RegistrationInput>({ resolver: zodResolver(registrationSchema), defaultValues: defaults, mode: "onTouched" });
   const values = watch();
@@ -89,22 +97,57 @@ export function RegistrationForm({ adminMode = false }: { adminMode?: boolean })
   }, [setValue, values.zipCode]);
 
   async function next() {
+    for (const field of nameFieldsByStep[step] ?? []) {
+      const value = values[field];
+      if (typeof value === "string") setValue(field, titleCase(value), { shouldValidate: true });
+    }
     const valid = await trigger(stepFields[step]);
-    if (valid) { setStep((current) => Math.min(4, current + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    if (valid) {
+      setServerError("");
+      setSubmittedCurrentReview(false);
+      setStep((current) => Math.min(4, current + 1));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function previous() {
+    setServerError("");
+    setSubmittedCurrentReview(false);
+    setStep((current) => Math.max(0, current - 1));
   }
 
   async function submit(data: RegistrationInput) {
     setServerError("");
-    const response = await fetch("/api/registrations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) });
-    const result = await response.json();
-    if (!response.ok) { setServerError(result.message ?? "Não foi possível enviar. Tente novamente."); return; }
-    setDone(true); window.scrollTo({ top: 0, behavior: "smooth" });
+    setSubmittedCurrentReview(true);
+    try {
+      const response = await fetch("/api/registrations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) { setServerError(result?.message ?? "Não foi possível enviar. Tente novamente."); return; }
+      setDone(true); window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      setServerError("Não foi possível conectar ao serviço. Verifique sua internet e tente novamente.");
+    }
+  }
+
+  function showInvalidStep(invalidFields: FieldErrors<RegistrationInput>) {
+    const invalidStep = stepFields.findIndex((fields) => fields.some((field) => invalidFields[field]));
+    if (invalidStep >= 0) setStep(invalidStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (step < 4) {
+      void next();
+      return;
+    }
+    void handleSubmit(submit, showInvalidStep)(event);
   }
 
   if (done) return <div className="card success"><div className="success-icon"><Check size={34}/></div><h2>Inscrição cadastrada</h2><p className="form-help">{adminMode ? "O cadastro foi salvo e já está disponível na fila de análise do painel." : "Os dados foram enviados com segurança e aguardam a análise da equipe RS9. A escola entrará em contato pelos dados informados."}</p><div className="notice">A inscrição foi registrada como <strong>pendente</strong> e ainda precisa ser analisada.</div>{adminMode && <a className="btn btn-primary" style={{marginTop:20}} href="/admin/inscricoes">Voltar às inscrições</a>}</div>;
 
   return (
-    <form className="card form-card" onSubmit={handleSubmit(submit)} noValidate>
+    <form className="card form-card" onSubmit={handleFormSubmit} noValidate>
       <div className="progress" aria-label={`Etapa ${step + 1} de 5`}>
         {steps.map((name, index) => <div key={name} data-step={index + 1} className={`progress-step ${index === step ? "active" : ""} ${index < step ? "done" : ""}`}>{name}</div>)}
       </div>
@@ -177,10 +220,10 @@ export function RegistrationForm({ adminMode = false }: { adminMode?: boolean })
             <div className="data-item"><span>Uso de imagem</span><strong>{values.imageConsent ? "Autorizado" : "Pendente"}</strong></div><div className="data-item"><span>Confirmado por</span><strong>{values.signerName}</strong></div>
           </div>
           <div className="notice" style={{marginTop: 24}}>Ao enviar, a inscrição ficará com status <strong>pendente</strong> até a análise da RS9.</div>
-          {serverError && <p className="error" role="alert" style={{marginTop: 16}}>{serverError}</p>}
+          {submittedCurrentReview && serverError && <p className="error" role="alert" style={{marginTop: 16}}>{serverError}</p>}
         </>}
         <div className="actions">
-          <button type="button" className="btn btn-secondary" disabled={step === 0 || isSubmitting} onClick={() => setStep((s) => s - 1)}><ArrowLeft size={17}/> Voltar</button>
+          <button type="button" className="btn btn-secondary" disabled={step === 0 || isSubmitting} onClick={previous}><ArrowLeft size={17}/> Voltar</button>
           {step < 4 ? <button type="button" className="btn btn-primary" onClick={next}>Continuar <ArrowRight size={17}/></button> : <button type="submit" className="btn btn-gold" disabled={isSubmitting}>{isSubmitting ? <><LoaderCircle size={18}/> Enviando…</> : <>Enviar inscrição <Check size={18}/></>}</button>}
         </div>
       </div>

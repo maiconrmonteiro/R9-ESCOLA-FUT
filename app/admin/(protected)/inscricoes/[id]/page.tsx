@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Registration } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { formatDate, titleCase } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
 import { EditableSection, type FieldDef } from "@/components/editable-section";
-import { rejectRegistration } from "@/app/admin/actions";
+import { deleteRegistration, rejectRegistration } from "@/app/admin/actions";
 import { ApprovalConfirmation } from "@/components/approval-confirmation";
+import { ConfirmButton } from "@/components/confirm-button";
 
 export default async function RegistrationDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,8 +24,8 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
   const health = row.health ?? {};
 
   const identificationFields: FieldDef[] = [
-    { label: "Nome completo", dbKey: "athlete_name", value: row.athlete_name },
-    { label: "Apelido", dbKey: "athlete_nickname", value: row.athlete_nickname || "" },
+    { label: "Nome completo", dbKey: "athlete_name", value: titleCase(row.athlete_name) },
+    { label: "Apelido", dbKey: "athlete_nickname", value: titleCase(row.athlete_nickname || "") },
     { label: "Nascimento", dbKey: "birth_date", value: row.birth_date, type: "date" },
     { label: "CPF / RG", dbKey: "athlete_document", value: row.athlete_document || "" },
     { label: "Naturalidade", dbKey: "naturality", value: row.naturality || "" },
@@ -40,11 +41,11 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
     { label: "Cidade", dbKey: "address.city", value: address.city || "" },
     { label: "Estado", dbKey: "address.state", value: address.state || "" },
     { label: "CEP", dbKey: "address.zip", value: address.zip || "" },
-    { label: "Nome da mãe", dbKey: "family.motherName", value: family.motherName || "" },
+    { label: "Nome da mãe", dbKey: "family.motherName", value: titleCase(family.motherName || "") },
     { label: "Telefone da mãe", dbKey: "family.motherPhone", value: family.motherPhone || "" },
-    { label: "Nome do pai", dbKey: "family.fatherName", value: family.fatherName || "" },
+    { label: "Nome do pai", dbKey: "family.fatherName", value: titleCase(family.fatherName || "") },
     { label: "Telefone do pai", dbKey: "family.fatherPhone", value: family.fatherPhone || "" },
-    { label: "Responsável legal", dbKey: "guardian_name", value: row.guardian_name },
+    { label: "Responsável legal", dbKey: "guardian_name", value: titleCase(row.guardian_name) },
     { label: "Parentesco", dbKey: "guardian_relationship", value: row.guardian_relationship },
     { label: "Telefone do responsável", dbKey: "guardian_phone", value: row.guardian_phone },
     { label: "E-mail do responsável", dbKey: "guardian_email", value: row.guardian_email },
@@ -72,7 +73,7 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
           >
             <ArrowLeft size={16} /> Voltar às inscrições
           </Link>
-          <h1>{row.athlete_name}</h1>
+          <h1>{titleCase(row.athlete_name)}</h1>
           <p>Recebida em {formatDate(row.created_at)} · <StatusBadge status={row.status} /></p>
         </div>
       </header>
@@ -131,8 +132,8 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
               <ApprovalConfirmation
                 canApprove={row.status === "pending"}
                 registrationId={row.id}
-                athleteName={row.athlete_name}
-                guardianName={row.guardian_name}
+                athleteName={titleCase(row.athlete_name)}
+                guardianName={titleCase(row.guardian_name)}
                 guardianPhone={row.guardian_phone}
                 initialClassId={row.class_id}
                 classes={classes}
@@ -156,6 +157,24 @@ export default async function RegistrationDetail({ params }: { params: Promise<{
                 Decisão registrada em {formatDate(row.decided_at)}.
               </p>
             )}
+          </section>
+
+          <section className="card detail-card" style={{ marginTop: 18 }}>
+            <h2>Excluir inscrição</h2>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 14 }}>
+              Remove definitivamente o cadastro e seus eventos. Registros de presença já realizados permanecem no histórico sem vínculo com esta inscrição.
+            </p>
+            <form action={deleteRegistration}>
+              <input type="hidden" name="id" value={row.id} />
+              <ConfirmButton
+                className="btn btn-danger"
+                title="Excluir esta inscrição?"
+                confirmLabel="Excluir definitivamente"
+                message={`Você está prestes a excluir a inscrição de ${titleCase(row.athlete_name)} e todos os eventos vinculados.`}
+              >
+                <Trash2 size={16} /> Excluir inscrição
+              </ConfirmButton>
+            </form>
           </section>
 
         </aside>

@@ -10,3 +10,10 @@ export function formatDate(value?: string | null) {
 export function initials(name: string) {
   return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 }
+
+export function titleCase(value: string) {
+  return value
+    .trim()
+    .toLocaleLowerCase("pt-BR")
+    .replace(/(^|[\s'-])\p{L}/gu, (letter) => letter.toLocaleUpperCase("pt-BR"));
+}
