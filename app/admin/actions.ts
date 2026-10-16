@@ -35,11 +35,52 @@ export async function decideRegistration(formData: FormData) {
     decided_at: new Date().toISOString(),
     decided_by: user.id,
   }).eq("id", id);
-  if (!error) await supabase.from("registration_events").insert({ registration_id: id, actor_id: user.id, event_type: status, metadata: { reason: formData.get("rejectionReason") || null } });
+  if (error) {
+    console.error("registration_decision_failed", {
+      registrationId: id,
+      status,
+      classId,
+      userId: user.id,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+
+    const messageByCode: Record<string, string> = {
+      "23503": "A turma selecionada não existe mais. Atualize a página e selecione outra turma.",
+      "42501": "Seu usuário não tem permissão para aprovar inscrições.",
+    };
+    const isEnrollmentConflict = error.code === "23505"
+      && error.message.includes("registrations_enrollment_number_key");
+
+    return {
+      ok: false,
+      error: isEnrollmentConflict
+        ? "Não foi possível gerar uma matrícula única. A correção do banco ainda precisa ser aplicada."
+        : messageByCode[error.code] ?? `Não foi possível registrar a decisão (código ${error.code || "desconhecido"}).`,
+    };
+  }
+
+  const { error: eventError } = await supabase.from("registration_events").insert({
+    registration_id: id,
+    actor_id: user.id,
+    event_type: status,
+    metadata: { reason: formData.get("rejectionReason") || null },
+  });
+  if (eventError) {
+    console.error("registration_decision_event_failed", {
+      registrationId: id,
+      status,
+      userId: user.id,
+      code: eventError.code,
+      message: eventError.message,
+      details: eventError.details,
+      hint: eventError.hint,
+    });
+  }
   revalidatePath("/admin"); revalidatePath(`/admin/inscricoes/${id}`);
-  return error
-    ? { ok: false, error: "Não foi possível registrar a decisão. Tente novamente." }
-    : { ok: true };
+  return { ok: true };
 }
 
 export async function rejectRegistration(formData: FormData) {
