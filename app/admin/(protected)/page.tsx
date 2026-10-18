@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, CalendarRange, CheckCircle2, Clock3, TrendingUp, UserRoundX, UsersRound } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarRange, CheckCircle2, Clock3, Cake, PartyPopper, TrendingUp, UserRoundX, UsersRound } from "lucide-react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Registration } from "@/lib/types";
 import { formatDate, initials } from "@/lib/utils";
@@ -7,12 +7,30 @@ import { StatusBadge } from "@/components/status-badge";
 import styles from "./dashboard.module.css";
 
 type ClassRow = { id: string; name: string; shift: string };
-type Athlete = { id: string; athlete_name: string; class_id: string | null; class_name: string | null };
+type Athlete = { id: string; athlete_name: string; class_id: string | null; class_name: string | null; birth_date: string | null };
 type Attendance = { status: "C" | "F" | "FJ"; registration_id: string | null; needs_review: boolean };
 type Session = { id: string; session_date: string; class_id: string; classes: { name: string; shift: string } | null; attendance_records: Attendance[] };
 
 function percent(value: number, total: number) { return total ? Math.round((value / total) * 100) : 0; }
 function shortDate(value: string) { return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "UTC" }).format(new Date(`${value}T12:00:00Z`)); }
+
+function upcomingBirthdays(athletes: Athlete[], windowDays = 7) {
+  const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+  const [ty, tm, td] = todayStr.split("-").map(Number);
+  const todayUtc = Date.UTC(ty, tm - 1, td);
+  return athletes.flatMap(athlete => {
+    if (!athlete.birth_date) return [];
+    const [by, bm, bd] = athlete.birth_date.split("-").map(Number);
+    if (!by || !bm || !bd) return [];
+    const dayOf = (year: number) => Math.min(bd, new Date(Date.UTC(year, bm, 0)).getUTCDate());
+    let next = Date.UTC(ty, bm - 1, dayOf(ty));
+    if (next < todayUtc) next = Date.UTC(ty + 1, bm - 1, dayOf(ty + 1));
+    const daysLeft = Math.round((next - todayUtc) / 86400000);
+    if (daysLeft > windowDays) return [];
+    const nextYear = new Date(next).getUTCFullYear();
+    return [{ athlete, daysLeft, age: nextYear - by, day: String(dayOf(nextYear)).padStart(2, "0"), month: String(bm).padStart(2, "0") }];
+  }).sort((a, b) => a.daysLeft - b.daysLeft || a.athlete.athlete_name.localeCompare(b.athlete.athlete_name));
+}
 
 export default async function DashboardPage() {
   let recent: Registration[] = [];
@@ -25,7 +43,7 @@ export default async function DashboardPage() {
     const supabase = await createClient();
     const [recentResult, athletesResult, classesResult, sessionsResult, pendingResult] = await Promise.all([
       supabase.from("registrations").select("*").order("created_at", { ascending: false }).limit(5),
-      supabase.from("registrations").select("id,athlete_name,class_id,class_name").eq("status", "approved").order("athlete_name"),
+      supabase.from("registrations").select("id,athlete_name,class_id,class_name,birth_date").eq("status", "approved").order("athlete_name"),
       supabase.from("classes").select("id,name,shift").order("name"),
       supabase.from("attendance_sessions").select("id,session_date,class_id,classes(name,shift),attendance_records(status,registration_id,needs_review)").order("session_date", { ascending: false }),
       supabase.from("registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
@@ -42,6 +60,9 @@ export default async function DashboardPage() {
   const attendanceRate = percent(present, allAttendance.length);
   const unlinked = athletes.filter(athlete => !athlete.class_id).length;
   const reviews = allAttendance.filter(record => record.needs_review).length;
+  const birthdays = upcomingBirthdays(athletes);
+  const birthdaysToday = birthdays.filter(item => item.daysLeft === 0);
+  const birthdaysNext = birthdays.filter(item => item.daysLeft > 0);
 
   const trendMap = new Map<string, { present: number; absent: number }>();
   for (const session of [...sessions].reverse()) {
@@ -80,6 +101,14 @@ export default async function DashboardPage() {
   ];
 
   return <>
+    {birthdaysToday.length > 0 && <section className={styles.birthdayBanner} aria-label="Aniversariantes do dia">
+      <span className={styles.birthdayBannerIcon}><PartyPopper size={28}/></span>
+      <div className={styles.birthdayBannerText}>
+        <p className={styles.birthdayBannerKicker}>🎉 Hoje é dia de festa!</p>
+        <h2>{birthdaysToday.length === 1 ? "Aniversariante do dia" : `${birthdaysToday.length} aniversariantes hoje`}</h2>
+        <div className={styles.birthdayBannerList}>{birthdaysToday.map(({ athlete, age }) => <Link href={`/admin/inscricoes/${athlete.id}`} key={athlete.id}><span className="avatar">{initials(athlete.athlete_name)}</span><div><strong>{athlete.athlete_name}</strong><small>{age} anos · {athlete.class_name ?? "Sem turma"}</small></div></Link>)}</div>
+      </div>
+    </section>}
     <header className={styles.header}><div><p className={styles.eyebrow}>Painel operacional</p><h1>Visão geral</h1><p className={styles.subtitle}>Atletas, turmas e frequência em um só lugar.</p></div><div className={styles.headerActions}><div className={styles.updated}><i/> Dados atualizados</div><Link href="/admin/chamadas" className="btn btn-primary"><CalendarRange size={17}/> Fazer chamada</Link></div></header>
     <section className={styles.stats} aria-label="Indicadores principais">{stats.map(({ label, value, suffix, icon: Icon, href, tone }) => <Link href={href} className={`${styles.stat} ${styles[tone]}`} key={label}><div className={styles.statTop}><span className={styles.statIcon}><Icon size={19}/></span><span className={styles.statLabel}>{label}</span></div><div className={styles.statBottom}><strong className={styles.statValue}>{value}{suffix}</strong><ArrowRight size={17}/></div></Link>)}</section>
 
@@ -98,6 +127,11 @@ export default async function DashboardPage() {
           <Link href="/admin/inscricoes?status=pending"><span className={pendingRegistrations ? styles.alertIcon : styles.okIcon}><Clock3 size={18}/></span><div><strong>{pendingRegistrations} inscrição(ões) pendente(s)</strong><small>Analise os novos cadastros</small></div><ArrowRight size={16}/></Link>
         </div>
       </article>
+    </section>
+
+    <section className={styles.panel} style={{ marginTop: 18 }} aria-label="Próximos aniversariantes">
+      <div className={styles.panelHead}><div><p className={styles.sectionKicker}>Celebrações</p><h2>Próximos aniversariantes</h2></div><span className={styles.birthdayHint}>Próximos 7 dias</span></div>
+      {birthdaysNext.length ? <div className={styles.birthdayGrid}>{birthdaysNext.map(({ athlete, daysLeft, age, day, month }) => <Link href={`/admin/inscricoes/${athlete.id}`} key={athlete.id} className={styles.birthdayCard}><span className={styles.birthdayDate}><b>{day}</b><small>{month}</small></span><div><strong>{athlete.athlete_name}</strong><small>Faz {age} anos · {athlete.class_name ?? "Sem turma"}</small></div><em className={daysLeft <= 3 ? styles.soon : undefined}>{daysLeft === 1 ? "Amanhã" : `em ${daysLeft} dias`}</em></Link>)}</div> : <div className={styles.compactEmpty}><span><Cake size={22}/><br/>Nenhum aniversário nos próximos 7 dias.</span></div>}
     </section>
 
     <section className={styles.secondaryGrid}>

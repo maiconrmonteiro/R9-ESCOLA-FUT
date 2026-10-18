@@ -30,3 +30,25 @@
 @media(max-width:1200px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.mainGrid,.secondaryGrid{grid-template-columns:1fr 1fr}}
 @media(max-width:850px){.mainGrid,.secondaryGrid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.header{align-items:flex-start;flex-direction:column}.header h1{font-size:38px}.headerActions{width:100%}.headerActions>a{width:100%}.updated{display:none}.stats{display:flex;margin-inline:-16px;padding:0 16px 8px;overflow-x:auto}.stat{min-width:190px;min-height:128px;padding:15px}.statValue{font-size:35px}.mainGrid{margin-top:12px}.panel,.recent{border-radius:15px}.panelHead,.recentHead{padding:14px 16px}.chart{height:210px;padding-inline:14px;gap:6px}.chartColumn:nth-child(-n+2){display:none}.recentTable{overflow:visible}.recentTable :global(table),.recentTable :global(tbody),.recentTable :global(tr),.recentTable :global(td){display:block;width:100%}.recentTable :global(thead){display:none}.recentTable :global(tbody){padding:6px 14px 14px}.recentTable :global(tr){position:relative;padding:12px 44px 12px 0;border-bottom:1px solid #ebf0ee}.recentTable :global(td){display:flex;justify-content:space-between;gap:15px;padding:5px 0;border:0;white-space:normal;text-align:right}.recentTable :global(td::before){content:attr(data-label);color:#64726e;font-size:10px;font-weight:800;text-transform:uppercase}.recentTable :global(td:first-child){justify-content:flex-start}.recentTable :global(td:first-child::before){display:none}.recentTable .rowLink{position:absolute;top:12px;right:0;width:auto}.recentTable .rowLink::before{display:none}}
+.birthdayBanner { position:relative;overflow:hidden;display:flex;align-items:center;gap:20px;margin-bottom:24px;padding:22px 26px;color:#fff;background:linear-gradient(120deg,#063f34 0%,#0c6b52 55%,#c99a1d 140%);border-radius:20px;box-shadow:0 18px 40px rgba(4,45,38,.2);animation:bdayIn .5s ease both }
+.birthdayBanner::after { content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(255,215,103,.35),transparent 70%);pointer-events:none }
+.birthdayBannerIcon { display:grid;place-items:center;width:60px;height:60px;flex:0 0 auto;color:#ffd767;background:rgba(255,255,255,.12);border-radius:18px;animation:bdayPop 1.6s ease-in-out infinite }
+.birthdayBannerText { min-width:0;flex:1;position:relative;z-index:1 }
+.birthdayBannerKicker { margin:0;color:#ffd767;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase }
+.birthdayBannerText h2 { margin:4px 0 12px;font-size:24px;letter-spacing:-.03em }
+.birthdayBannerList { display:flex;flex-wrap:wrap;gap:10px }
+.birthdayBannerList>a { display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:14px;transition:background .15s }
+.birthdayBannerList>a:hover { background:rgba(255,255,255,.24) }
+.birthdayBannerList strong,.birthdayBannerList small { display:block }.birthdayBannerList strong { font-size:13px }.birthdayBannerList small { margin-top:2px;color:#cfe3dd;font-size:11px }
+.birthdayHint { color:#6d7d78;font-size:12px;font-weight:700 }
+.birthdayGrid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;padding:16px 18px 18px }
+.birthdayCard { display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:12px;padding:10px 12px;background:#f8fbfa;border:1px solid #e3ebe8;border-radius:14px;transition:transform .15s,box-shadow .15s }
+.birthdayCard:hover { transform:translateY(-2px);box-shadow:0 10px 24px rgba(4,45,38,.08) }
+.birthdayDate { display:grid;place-items:center;width:48px;height:48px;color:#fff;background:linear-gradient(145deg,#126953,#0a4a3a);border-radius:12px;line-height:1 }
+.birthdayDate b { font-size:17px }.birthdayDate small { margin-top:-6px;color:#ffd767;font-size:10px;font-weight:800 }
+.birthdayCard strong,.birthdayCard div small { display:block }.birthdayCard strong { color:#1c342e;font-size:13px }.birthdayCard div small { margin-top:2px;color:#7a8985;font-size:11px }
+.birthdayCard em { padding:4px 9px;color:#126953;background:#e3f4ed;border-radius:99px;font-size:11px;font-style:normal;font-weight:800;white-space:nowrap }
+.birthdayCard em.soon { color:#8b6b08;background:#fff0ba }
+@keyframes bdayIn { from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none} }
+@keyframes bdayPop { 0%,100%{transform:rotate(-6deg) scale(1)}50%{transform:rotate(6deg) scale(1.08)} }
+@media(max-width:620px){.birthdayBanner{padding:18px;gap:14px}.birthdayBannerIcon{width:48px;height:48px}.birthdayGrid{grid-template-columns:1fr}}
