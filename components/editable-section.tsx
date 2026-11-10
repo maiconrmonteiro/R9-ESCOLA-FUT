@@ -23,9 +23,10 @@ type Props = {
   registrationId: string;
   title: string;
   fields: FieldDef[];
+  readOnly?: boolean;
 };
 
-export function EditableSection({ registrationId, title, fields }: Props) {
+export function EditableSection({ registrationId, title, fields, readOnly = false }: Props) {
   const [editing, setEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [showSuccess, setShowSuccess] = useState(false);
@@ -86,7 +87,7 @@ export function EditableSection({ registrationId, title, fields }: Props) {
               <Check size={14} /> Salvo
             </span>
           )}
-          {!editing ? (
+          {!readOnly && (!editing ? (
             <button
               type="button"
               onClick={() => setEditing(true)}
@@ -106,7 +107,7 @@ export function EditableSection({ registrationId, title, fields }: Props) {
               <X size={15} />
               <span>Cancelar</span>
             </button>
-          )}
+          ))}
         </div>
       </div>
 

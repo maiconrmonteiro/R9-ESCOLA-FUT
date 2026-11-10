@@ -60,8 +60,8 @@ export async function assignAthlete(formData: FormData) {
   const classId = String(formData.get("classId") || "");
   if (!registrationId || !classId) return;
   const supabase = await authenticatedClient();
-  const { error } = await supabase.from("registrations").update({ class_id: classId }).eq("id", registrationId);
-  if (error) redirect("/admin/turmas?erro=vincular");
+  const { data, error } = await supabase.from("registrations").update({ class_id: classId }).eq("id", registrationId).is("archived_at", null).select("id").maybeSingle();
+  if (error || !data) redirect("/admin/turmas?erro=vincular");
   revalidatePath("/admin/turmas");
   revalidatePath(`/admin/inscricoes/${registrationId}`);
   redirect("/admin/turmas?sucesso=vinculada");
@@ -71,8 +71,8 @@ export async function removeAthlete(formData: FormData) {
   const registrationId = String(formData.get("registrationId") || "");
   if (!registrationId) return;
   const supabase = await authenticatedClient();
-  const { error } = await supabase.from("registrations").update({ class_id: null }).eq("id", registrationId);
-  if (error) redirect("/admin/turmas?erro=remover_vinculo");
+  const { data, error } = await supabase.from("registrations").update({ class_id: null }).eq("id", registrationId).is("archived_at", null).select("id").maybeSingle();
+  if (error || !data) redirect("/admin/turmas?erro=remover_vinculo");
   revalidatePath("/admin/turmas");
   revalidatePath(`/admin/inscricoes/${registrationId}`);
   redirect("/admin/turmas?sucesso=desvinculada");

@@ -10,7 +10,7 @@ export default async function CallDetail({ params }: { params: Promise<{ id: str
   if (!session) notFound();
   const classData = session.classes as unknown as { id: string; name: string; shift: string; start_time: string; end_time: string };
   const [{ data: athletes }, { data: records }] = await Promise.all([
-    supabase.from("registrations").select("id,athlete_name,athlete_nickname").eq("status", "approved").eq("class_id", classData.id).order("athlete_name"),
+    supabase.from("registrations").select("id,athlete_name,athlete_nickname").eq("status", "approved").eq("class_id", classData.id).is("archived_at", null).order("athlete_name"),
     supabase.from("attendance_records").select("registration_id,status").eq("session_id", id),
   ]);
   const initial = Object.fromEntries((records ?? []).filter(item => item.registration_id).map(item => [item.registration_id!, item.status as Status]));

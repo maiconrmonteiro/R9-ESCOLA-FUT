@@ -42,11 +42,11 @@ export default async function DashboardPage() {
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
     const [recentResult, athletesResult, classesResult, sessionsResult, pendingResult] = await Promise.all([
-      supabase.from("registrations").select("*").order("created_at", { ascending: false }).limit(5),
-      supabase.from("registrations").select("id,athlete_name,class_id,class_name,birth_date").eq("status", "approved").order("athlete_name"),
+      supabase.from("registrations").select("*").is("archived_at", null).order("created_at", { ascending: false }).limit(5),
+      supabase.from("registrations").select("id,athlete_name,class_id,class_name,birth_date").eq("status", "approved").is("archived_at", null).order("athlete_name"),
       supabase.from("classes").select("id,name,shift").order("name"),
       supabase.from("attendance_sessions").select("id,session_date,class_id,classes(name,shift),attendance_records(status,registration_id,needs_review)").order("session_date", { ascending: false }),
-      supabase.from("registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
+      supabase.from("registrations").select("id", { count: "exact", head: true }).eq("status", "pending").is("archived_at", null),
     ]);
     recent = (recentResult.data ?? []) as Registration[];
     athletes = (athletesResult.data ?? []) as Athlete[];

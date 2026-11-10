@@ -33,6 +33,9 @@ export type Registration = {
   start_date: string | null;
   rejection_reason: string | null;
   decided_at: string | null;
+  archived_at: string | null;
+  archived_by: string | null;
+  archived_reason: string | null;
   created_at: string;
   updated_at: string;
 };

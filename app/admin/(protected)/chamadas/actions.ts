@@ -38,7 +38,7 @@ export async function markAllPresent(sessionId: string) {
   const { supabase } = await authenticatedClient();
   const { data: session } = await supabase.from("attendance_sessions").select("class_id").eq("id", sessionId).single();
   if (!session) return { ok: false };
-  const { data: athletes } = await supabase.from("registrations").select("id,athlete_name").eq("status", "approved").eq("class_id", session.class_id);
+  const { data: athletes } = await supabase.from("registrations").select("id,athlete_name").eq("status", "approved").eq("class_id", session.class_id).is("archived_at", null);
   const { data: existing } = await supabase.from("attendance_records").select("id,registration_id").eq("session_id", sessionId);
   const existingIds = new Set((existing ?? []).map(item => item.registration_id));
   if (existing?.length) await supabase.from("attendance_records").update({ status: "C" }).eq("session_id", sessionId);
@@ -54,7 +54,7 @@ export async function finalizeCall(sessionId: string, notes: string, sessionDate
   const { data: session } = await supabase.from("attendance_sessions").select("class_id").eq("id", sessionId).single();
   if (!session) return { ok: false, error: "Chamada não encontrada." };
   const [{ count: athleteCount }, { count: recordCount }] = await Promise.all([
-    supabase.from("registrations").select("id", { count: "exact", head: true }).eq("status", "approved").eq("class_id", session.class_id),
+    supabase.from("registrations").select("id", { count: "exact", head: true }).eq("status", "approved").eq("class_id", session.class_id).is("archived_at", null),
     supabase.from("attendance_records").select("id", { count: "exact", head: true }).eq("session_id", sessionId),
   ]);
   if ((recordCount ?? 0) < (athleteCount ?? 0)) return { ok: false, error: `Ainda existem ${(athleteCount ?? 0) - (recordCount ?? 0)} atleta(s) sem marcação.` };

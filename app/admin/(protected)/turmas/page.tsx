@@ -38,7 +38,7 @@ export default async function ClassesPage({ searchParams }: { searchParams: Prom
     const supabase = await createClient();
     const { data } = await supabase.from("classes").select("id,name,shift,training_days,start_time,end_time").order("start_time");
     rows = (data ?? []) as ClassRow[];
-    const { data: athleteData } = await supabase.from("registrations").select("id,athlete_name,class_id,status").eq("status", "approved").order("athlete_name");
+    const { data: athleteData } = await supabase.from("registrations").select("id,athlete_name,class_id,status").eq("status", "approved").is("archived_at", null).order("athlete_name");
     athletes = (athleteData ?? []) as AthleteRow[];
   }
   const unlinkedAthletes = athletes.filter(athlete => !athlete.class_id).length;

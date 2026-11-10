@@ -11,9 +11,11 @@ type Props = {
   className: string;
   title?: string;
   confirmLabel?: string;
+  warning?: string;
+  confirmClassName?: string;
 };
 
-export function ConfirmButton({ children, message, className, title = "Confirmar ação?", confirmLabel = "Confirmar" }: Props) {
+export function ConfirmButton({ children, message, className, title = "Confirmar ação?", confirmLabel = "Confirmar", warning = "Esta ação não poderá ser desfeita.", confirmClassName = "btn btn-danger" }: Props) {
   const { pending } = useFormStatus();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -37,10 +39,10 @@ export function ConfirmButton({ children, message, className, title = "Confirmar
           <p className={styles.kicker}>Atenção</p>
           <h2>{title}</h2>
           <p className={styles.description}>{message}</p>
-          <div className={styles.warning}>Esta ação não poderá ser desfeita.</div>
+          <div className={styles.warning}>{warning}</div>
           <div className={styles.actions}>
             <button type="button" className="btn btn-secondary" onClick={() => dialogRef.current?.close()}>Cancelar</button>
-            <button type="button" className="btn btn-danger" onClick={confirm}>{confirmLabel}</button>
+            <button type="button" className={confirmClassName} onClick={confirm}>{confirmLabel}</button>
           </div>
         </div>
       </dialog>

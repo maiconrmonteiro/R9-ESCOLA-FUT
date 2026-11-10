@@ -28,14 +28,15 @@ export async function decideRegistration(formData: FormData) {
   const classId = status === "approved" ? String(formData.get("classId") || "") || null : undefined;
   if (status === "approved" && !classId) return { ok: false, error: "Selecione a turma do atleta antes de aprovar." };
 
-  const { error } = await supabase.from("registrations").update({
+  const { data: updatedRegistration, error } = await supabase.from("registrations").update({
     status,
     ...(status === "approved" ? { class_id: classId } : {}),
     rejection_reason: status === "rejected" ? String(formData.get("rejectionReason") || "") || null : null,
     decided_at: new Date().toISOString(),
     decided_by: user.id,
-  }).eq("id", id);
-  if (error) {
+  }).eq("id", id).is("archived_at", null).select("id").maybeSingle();
+  if (error || !updatedRegistration) {
+    if (!error) return { ok: false, error: "Esta inscrição está arquivada ou não existe mais." };
     console.error("registration_decision_failed", {
       registrationId: id,
       status,
@@ -50,7 +51,7 @@ export async function decideRegistration(formData: FormData) {
     const messageByCode: Record<string, string> = {
       "23503": "A turma selecionada não existe mais. Atualize a página e selecione outra turma.",
       "42501": "Seu usuário não tem permissão para aprovar inscrições.",
-      "57014": "Tempo limite excedido ao gerar a matrícula no banco (código 57014). Aplique a migration de correção de matrículas acima de 99.",
+      "57014": "O banco demorou para responder. Tente novamente; se o erro persistir, contate o suporte.",
     };
     const isEnrollmentConflict = error.code === "23505"
       && error.message.includes("registrations_enrollment_number_key");
@@ -88,7 +89,7 @@ export async function rejectRegistration(formData: FormData) {
   await decideRegistration(formData);
 }
 
-export async function deleteRegistration(formData: FormData) {
+export async function archiveRegistration(formData: FormData) {
   const id = String(formData.get("id") || "");
   if (!id) return;
 
@@ -96,12 +97,55 @@ export async function deleteRegistration(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
 
-  const { error } = await supabase.from("registrations").delete().eq("id", id);
-  if (error) redirect(`/admin/inscricoes/${id}?erro=excluir`);
+  const reason = String(formData.get("archiveReason") || "").trim().slice(0, 500) || null;
+  const archivedAt = new Date().toISOString();
+  const { data, error } = await supabase.from("registrations").update({
+    archived_at: archivedAt,
+    archived_by: user.id,
+    archived_reason: reason,
+  }).eq("id", id).is("archived_at", null).select("id").maybeSingle();
+  if (error || !data) redirect(`/admin/inscricoes/${id}?erro=arquivar`);
+
+  const { error: eventError } = await supabase.from("registration_events").insert({
+    registration_id: id,
+    actor_id: user.id,
+    event_type: "archived",
+    metadata: { reason, archived_at: archivedAt },
+  });
+  if (eventError) console.error("registration_archive_event_failed", { registrationId: id, code: eventError.code, message: eventError.message });
 
   revalidatePath("/admin");
   revalidatePath("/admin/inscricoes");
-  redirect("/admin/inscricoes?sucesso=excluida");
+  redirect("/admin/inscricoes?sucesso=arquivada");
+}
+
+export async function restoreRegistration(formData: FormData) {
+  const id = String(formData.get("id") || "");
+  if (!id) return;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/admin/login");
+
+  const { data, error } = await supabase.from("registrations").update({
+    archived_at: null,
+    archived_by: null,
+    archived_reason: null,
+  }).eq("id", id).not("archived_at", "is", null).select("id").maybeSingle();
+  if (error || !data) redirect(`/admin/inscricoes/${id}?erro=restaurar`);
+
+  const { error: eventError } = await supabase.from("registration_events").insert({
+    registration_id: id,
+    actor_id: user.id,
+    event_type: "restored",
+    metadata: {},
+  });
+  if (eventError) console.error("registration_restore_event_failed", { registrationId: id, code: eventError.code, message: eventError.message });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/inscricoes");
+  revalidatePath(`/admin/inscricoes/${id}`);
+  redirect(`/admin/inscricoes/${id}?sucesso=restaurada`);
 }
 
 export async function updateRegistrationFields(formData: FormData) {
@@ -141,7 +185,7 @@ export async function updateRegistrationFields(formData: FormData) {
 
   // If there are JSONB merges, fetch current row first
   if (Object.keys(jsonbMerges).length > 0) {
-    const { data: current } = await supabase.from("registrations").select("address, family, health").eq("id", id).single();
+    const { data: current } = await supabase.from("registrations").select("address, family, health").eq("id", id).is("archived_at", null).single();
     if (current) {
       for (const [key, partial] of Object.entries(jsonbMerges)) {
         const existing = (current as Record<string, unknown>)[key] as Record<string, unknown> ?? {};
@@ -152,8 +196,8 @@ export async function updateRegistrationFields(formData: FormData) {
 
   if (Object.keys(flatUpdate).length === 0) return;
 
-  const { error } = await supabase.from("registrations").update(flatUpdate).eq("id", id);
-  if (!error) {
+  const { data: updatedRegistration, error } = await supabase.from("registrations").update(flatUpdate).eq("id", id).is("archived_at", null).select("id").maybeSingle();
+  if (!error && updatedRegistration) {
     await supabase.from("registration_events").insert({
       registration_id: id,
       actor_id: user.id,

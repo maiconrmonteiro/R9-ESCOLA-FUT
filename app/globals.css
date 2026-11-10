@@ -184,6 +184,7 @@ tr:last-child td { border-bottom: 0; }
 .badge-pending { color: #795f0a; background: #fff2c5; }
 .badge-approved { color: #126044; background: #dcefe7; }
 .badge-rejected { color: #903636; background: #f8dddd; }
+.badge-archived { color: #4f5f5a; background: #e6ecea; }
 .toolbar { display: flex; gap: 10px; }
 .row-action { display: grid; place-items: center; width: 34px; height: 34px; color: var(--forest-700); border: 1px solid var(--line); border-radius: 9px; transition: background .18s, color .18s; }
 .row-action:hover { color: white; background: var(--forest-700); }
