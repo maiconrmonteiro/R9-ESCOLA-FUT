@@ -50,6 +50,7 @@ export async function decideRegistration(formData: FormData) {
     const messageByCode: Record<string, string> = {
       "23503": "A turma selecionada não existe mais. Atualize a página e selecione outra turma.",
       "42501": "Seu usuário não tem permissão para aprovar inscrições.",
+      "57014": "Tempo limite excedido ao gerar a matrícula no banco (código 57014). Aplique a migration de correção de matrículas acima de 99.",
     };
     const isEnrollmentConflict = error.code === "23505"
       && error.message.includes("registrations_enrollment_number_key");

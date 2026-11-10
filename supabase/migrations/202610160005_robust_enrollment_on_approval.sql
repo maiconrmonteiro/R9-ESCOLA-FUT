@@ -28,12 +28,15 @@ begin
     from public.registrations;
 
     loop
-      candidate := pg_catalog.lpad(next_enrollment::text, 2, '0');
+      candidate := case
+        when next_enrollment < 10 then '0' || next_enrollment::text
+        else next_enrollment::text
+      end;
 
       exit when not exists (
         select 1
         from public.registrations
-        where enrollment_number = candidate
+        where pg_catalog.btrim(enrollment_number) = candidate
       );
 
       next_enrollment := next_enrollment + 1;
