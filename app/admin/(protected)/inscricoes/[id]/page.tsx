@@ -9,6 +9,7 @@ import { EditableSection, type FieldDef } from "@/components/editable-section";
 import { archiveRegistration, rejectRegistration, restoreRegistration } from "@/app/admin/actions";
 import { ApprovalConfirmation } from "@/components/approval-confirmation";
 import { ConfirmButton } from "@/components/confirm-button";
+import { AthleteSubBadge } from "@/components/athlete-sub-badge";
 
 export default async function RegistrationDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   const { id } = await params;
@@ -75,7 +76,7 @@ export default async function RegistrationDetail({ params, searchParams }: { par
           >
             <ArrowLeft size={16} /> Voltar às inscrições
           </Link>
-          <h1>{titleCase(row.athlete_name)}</h1>
+          <h1>{titleCase(row.athlete_name)} <AthleteSubBadge birthDate={row.birth_date}/></h1>
           <p>Recebida em {formatDate(row.created_at)} · <StatusBadge status={row.status} /></p>
         </div>
       </header>

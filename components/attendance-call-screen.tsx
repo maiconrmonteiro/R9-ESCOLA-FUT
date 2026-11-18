@@ -7,7 +7,7 @@ import { AttendanceCall } from "@/components/attendance-call";
 import { EditableCallDate } from "@/components/editable-call-date";
 
 type Status = "C" | "F" | "FJ";
-type Athlete = { id: string; athlete_name: string; athlete_nickname: string | null };
+type Athlete = { id: string; athlete_name: string; athlete_nickname: string | null; birth_date: string | null };
 
 export function AttendanceCallScreen({ sessionId, initialDate, className, shift, startTime, endTime, athletes, initial, finalized, initialNotes }: { sessionId: string; initialDate: string; className: string; shift: string; startTime: string; endTime: string; athletes: Athlete[]; initial: Record<string, Status>; finalized: boolean; initialNotes: string }) {
   const [sessionDate, setSessionDate] = useState(initialDate);

@@ -5,9 +5,10 @@ import { AthleteKpiModal } from "@/components/athlete-kpi-modal";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { assignAthlete, createClass, deleteClass, removeAthlete, updateClass } from "./actions";
 import styles from "./turmas.module.css";
+import { AthleteSubBadge } from "@/components/athlete-sub-badge";
 
 type ClassRow = { id: string; name: string; shift: "Matutino" | "Vespertino"; training_days: string; start_time: string; end_time: string };
-type AthleteRow = { id: string; athlete_name: string; class_id: string | null; status: string };
+type AthleteRow = { id: string; athlete_name: string; birth_date: string | null; class_id: string | null; status: string };
 
 const messages: Record<string, string> = {
   dados_invalidos: "Revise os dados. O horário final deve ser posterior ao inicial.",
@@ -38,7 +39,7 @@ export default async function ClassesPage({ searchParams }: { searchParams: Prom
     const supabase = await createClient();
     const { data } = await supabase.from("classes").select("id,name,shift,training_days,start_time,end_time").order("start_time");
     rows = (data ?? []) as ClassRow[];
-    const { data: athleteData } = await supabase.from("registrations").select("id,athlete_name,class_id,status").eq("status", "approved").is("archived_at", null).order("athlete_name");
+    const { data: athleteData } = await supabase.from("registrations").select("id,athlete_name,birth_date,class_id,status").eq("status", "approved").is("archived_at", null).order("athlete_name");
     athletes = (athleteData ?? []) as AthleteRow[];
   }
   const unlinkedAthletes = athletes.filter(athlete => !athlete.class_id).length;
@@ -56,8 +57,8 @@ export default async function ClassesPage({ searchParams }: { searchParams: Prom
     <section className={styles.summary} aria-label="Resumo das turmas">
       <div><span className={styles.summaryIcon}><UsersRound size={20}/></span><strong>{rows.length}</strong><small>turmas cadastradas</small></div>
       <div><span className={styles.summaryIcon}><CalendarDays size={20}/></span><strong>{new Set(rows.map(row => row.training_days)).size}</strong><small>rotinas de treino</small></div>
-      <AthleteKpiModal title="Atletas vinculados" label="atletas vinculados" tone="linked" athletes={athletes.filter(athlete => athlete.class_id).map(athlete => ({ id: athlete.id, name: athlete.athlete_name, detail: classNames.get(athlete.class_id!) ?? "Turma vinculada" }))}/>
-      <AthleteKpiModal title="Atletas sem turma" label="atletas sem turma" tone={unlinkedAthletes > 0 ? "pending" : "linked"} athletes={athletes.filter(athlete => !athlete.class_id).map(athlete => ({ id: athlete.id, name: athlete.athlete_name, detail: "Aguardando vínculo com uma turma" }))}/>
+      <AthleteKpiModal title="Atletas vinculados" label="atletas vinculados" tone="linked" athletes={athletes.filter(athlete => athlete.class_id).map(athlete => ({ id: athlete.id, name: athlete.athlete_name, birthDate: athlete.birth_date, detail: classNames.get(athlete.class_id!) ?? "Turma vinculada" }))}/>
+      <AthleteKpiModal title="Atletas sem turma" label="atletas sem turma" tone={unlinkedAthletes > 0 ? "pending" : "linked"} athletes={athletes.filter(athlete => !athlete.class_id).map(athlete => ({ id: athlete.id, name: athlete.athlete_name, birthDate: athlete.birth_date, detail: "Aguardando vínculo com uma turma" }))}/>
     </section>
 
     <section className={styles.list}>
@@ -81,7 +82,7 @@ export default async function ClassesPage({ searchParams }: { searchParams: Prom
             </form>
             <div className={styles.athleteList}>
               {athletes.filter(athlete => athlete.class_id === row.id).map(athlete => <div key={athlete.id}>
-                <Link href={`/admin/inscricoes/${athlete.id}`}>{athlete.athlete_name}</Link>
+                <Link href={`/admin/inscricoes/${athlete.id}`}>{athlete.athlete_name} <AthleteSubBadge birthDate={athlete.birth_date}/></Link>
                 <form action={removeAthlete}><input type="hidden" name="registrationId" value={athlete.id}/><ConfirmButton className={styles.unlinkButton} message={`Remover ${athlete.athlete_name} desta turma?`}><UserMinus size={15}/> Remover</ConfirmButton></form>
               </div>)}
               {!athletes.some(athlete => athlete.class_id === row.id) && <p>Nenhum atleta vinculado a esta turma.</p>}

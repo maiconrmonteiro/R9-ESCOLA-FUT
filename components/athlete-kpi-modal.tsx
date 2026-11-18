@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { ArrowRight, UserCheck, UserX, X } from "lucide-react";
+import { AthleteSubBadge } from "@/components/athlete-sub-badge";
 
-type AthleteItem = { id: string; name: string; detail: string };
+type AthleteItem = { id: string; name: string; birthDate?: string | null; detail: string };
 
 export function AthleteKpiModal({
   title,
@@ -35,7 +36,7 @@ export function AthleteKpiModal({
         </header>
         <div className="athlete-modal-list">
           {athletes.map(athlete => <div key={athlete.id}>
-            <div><strong>{athlete.name}</strong><span>{athlete.detail}</span></div>
+            <div><strong>{athlete.name} <AthleteSubBadge birthDate={athlete.birthDate}/></strong><span>{athlete.detail}</span></div>
             <Link href={`/admin/inscricoes/${athlete.id}`} onClick={() => dialogRef.current?.close()}>Ver cadastro <ArrowRight size={15}/></Link>
           </div>)}
           {!athletes.length && <div className="athlete-modal-empty">Nenhum atleta nesta situação.</div>}

@@ -4,8 +4,9 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Registration, RegistrationStatus } from "@/lib/types";
 import { formatDate, initials, titleCase } from "@/lib/utils";
 import { StatusBadge } from "@/components/status-badge";
+import { AthleteSubBadge } from "@/components/athlete-sub-badge";
 
-export default async function RegistrationsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; page?: string; sucesso?: string }> }) {
+export default async function RegistrationsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; sub?: string; page?: string; sucesso?: string }> }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
   const perPage = 15;
@@ -24,6 +25,11 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
       if (params.status && ["pending", "approved", "rejected"].includes(params.status)) query = query.eq("status", params.status);
     }
     if (params.q?.trim()) query = query.ilike("athlete_name", `%${params.q.trim()}%`);
+    const selectedSub = Number(params.sub);
+    if (Number.isInteger(selectedSub) && selectedSub >= 7 && selectedSub <= 16) {
+      const birthYear = new Date().getFullYear() - selectedSub;
+      query = query.gte("birth_date", `${birthYear}-01-01`).lte("birth_date", `${birthYear}-12-31`);
+    }
 
     const { data, count: total, error } = await query.order("created_at", { ascending: false }).range((page - 1) * perPage, page * perPage - 1);
     rows = (data ?? []) as Registration[];
@@ -31,7 +37,7 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
     loadError = Boolean(error);
   }
 
-  const pageHref = (targetPage: number) => `?q=${encodeURIComponent(params.q ?? "")}&status=${encodeURIComponent(params.status ?? "")}&page=${targetPage}`;
+  const pageHref = (targetPage: number) => `?q=${encodeURIComponent(params.q ?? "")}&status=${encodeURIComponent(params.status ?? "")}&sub=${encodeURIComponent(params.sub ?? "")}&page=${targetPage}`;
   const successMessage = params.sucesso === "arquivada" ? "Inscrição arquivada com sucesso. Ela pode ser restaurada pelo filtro Arquivadas." : null;
 
   return <>
@@ -52,12 +58,16 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
             <option value="rejected">Recusadas</option>
             <option value="archived">Arquivadas</option>
           </select>
+          <select className="search-input" name="sub" defaultValue={params.sub ?? ""} aria-label="Filtrar por Sub">
+            <option value="">Todos os Subs</option>
+            {Array.from({ length: 10 }, (_, index) => 7 + index).map(sub => <option key={sub} value={sub}>Sub {sub}</option>)}
+          </select>
           <button className="btn btn-secondary">Filtrar</button>
         </form>
         <span style={{ fontSize: 13, color: "var(--muted)" }}>{count} registro(s)</span>
       </div>
       {rows.length ? <>
-        <div className="table-wrap"><table><thead><tr><th>Atleta</th><th>Responsável</th><th>Contato</th><th>Data</th><th>Status</th><th></th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><div className="athlete-cell"><span className="avatar">{initials(row.athlete_name)}</span>{titleCase(row.athlete_name)}</div></td><td>{titleCase(row.guardian_name)}</td><td>{row.guardian_phone}</td><td>{formatDate(row.created_at)}</td><td><StatusBadge status={row.archived_at ? "archived" : row.status as RegistrationStatus}/></td><td><Link href={`/admin/inscricoes/${row.id}`}><ArrowRight size={18}/></Link></td></tr>)}</tbody></table></div>
+        <div className="table-wrap"><table><thead><tr><th>Atleta</th><th>Responsável</th><th>Contato</th><th>Data</th><th>Status</th><th></th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><div className="athlete-cell"><span className="avatar">{initials(row.athlete_name)}</span>{titleCase(row.athlete_name)} <AthleteSubBadge birthDate={row.birth_date}/></div></td><td>{titleCase(row.guardian_name)}</td><td>{row.guardian_phone}</td><td>{formatDate(row.created_at)}</td><td><StatusBadge status={row.archived_at ? "archived" : row.status as RegistrationStatus}/></td><td><Link href={`/admin/inscricoes/${row.id}`}><ArrowRight size={18}/></Link></td></tr>)}</tbody></table></div>
         <div className="section-head"><span>Página {page} de {Math.max(1, Math.ceil(count / perPage))}</span><div className="toolbar">{page > 1 && <Link className="btn btn-secondary" href={pageHref(page - 1)}>Anterior</Link>}{page * perPage < count && <Link className="btn btn-primary" href={pageHref(page + 1)}>Próxima</Link>}</div></div>
       </> : <div className="empty"><strong>Nenhum resultado</strong><p>Ajuste os filtros ou aguarde novas inscrições.</p></div>}
     </section>
